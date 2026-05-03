@@ -639,8 +639,8 @@ body {
 
 <script>
 // CHANGE THIS TO YOUR SERVER URL
-const SERVER_URL = 'https://your-server-url.onrender.com'; // Change this!
-
+// Dynamically gets your current Render URL
+const SERVER_URL = window.location.origin;
 let socket = null;
 let currentCategory = '';
 let currentCategoryColor = '';
