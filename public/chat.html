@@ -1,0 +1,838 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chat - CupLab | Talk to Strangers Online</title>
+<meta name="robots" content="noindex, nofollow">
+
+<!-- Socket.IO Client -->
+<script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --primary: #ff6b6b;
+  --primary-dark: #ee5a52;
+  --business: #4ecdc4;
+  --dating: #ff6b9d;
+  --friendship: #95e1d3;
+  --gaming: #c44569;
+  --language: #f9ca24;
+  --casual: #f38181;
+  --dark: #1a1a2e;
+  --dark2: #16213e;
+  --dark3: #0f3460;
+  --white: #eee;
+  --gray: #a8a8a8;
+  --green: #26de81;
+  --red: #e74c3c;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: var(--dark);
+  color: var(--white);
+  height: 100vh;
+  overflow: hidden;
+}
+
+.header {
+  background: rgba(26, 26, 46, 0.95);
+  border-bottom: 2px solid var(--primary);
+  padding: 1rem 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.logo {
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: var(--primary);
+  text-decoration: none;
+}
+
+.logo::before { content: '☕ '; }
+
+.header-right {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.category-badge {
+  background: var(--cat-color);
+  color: var(--white);
+  padding: 0.6rem 1.4rem;
+  border-radius: 20px;
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
+.status-indicator {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  padding: 0.5rem 1rem;
+  border-radius: 15px;
+  background: rgba(255,255,255,0.05);
+}
+
+.status-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--gray);
+}
+
+.status-dot.connected { background: var(--green); animation: pulse 2s infinite; }
+.status-dot.searching { background: var(--primary); animation: pulse 1s infinite; }
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.home-btn {
+  background: transparent;
+  border: 2px solid var(--gray);
+  color: var(--gray);
+  padding: 0.6rem 1.4rem;
+  border-radius: 20px;
+  text-decoration: none;
+  font-weight: 600;
+  transition: all 0.3s;
+}
+
+.home-btn:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.container {
+  height: calc(100vh - 70px);
+  display: flex;
+  flex-direction: column;
+}
+
+/* AGE VERIFICATION */
+.age-verify {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: 2rem;
+}
+
+.verify-box {
+  background: var(--dark2);
+  border: 2px solid var(--primary);
+  border-radius: 20px;
+  padding: 3rem 2.5rem;
+  max-width: 550px;
+  text-align: center;
+}
+
+.verify-box h2 {
+  font-size: 2.2rem;
+  margin-bottom: 1rem;
+  color: var(--primary);
+}
+
+.verify-box p {
+  color: var(--gray);
+  margin-bottom: 1.5rem;
+  line-height: 1.8;
+  font-size: 1.05rem;
+}
+
+.verify-box ul {
+  text-align: left;
+  margin-bottom: 2rem;
+  color: var(--gray);
+  line-height: 2;
+}
+
+.verify-btns {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.btn {
+  padding: 1rem 2.5rem;
+  border-radius: 25px;
+  border: none;
+  font-weight: 800;
+  font-size: 1.05rem;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.btn-yes {
+  background: var(--primary);
+  color: var(--white);
+  box-shadow: 0 5px 20px rgba(255, 107, 107, 0.3);
+}
+
+.btn-yes:hover {
+  background: var(--primary-dark);
+  transform: translateY(-3px);
+  box-shadow: 0 7px 25px rgba(255, 107, 107, 0.4);
+}
+
+.btn-no {
+  background: transparent;
+  border: 2px solid var(--gray);
+  color: var(--gray);
+}
+
+.btn-no:hover {
+  border-color: var(--red);
+  color: var(--red);
+}
+
+/* CATEGORY SELECTION */
+.cat-select {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: 2rem;
+}
+
+.cat-box {
+  max-width: 1000px;
+  width: 100%;
+  text-align: center;
+}
+
+.cat-box h2 {
+  font-size: 2.8rem;
+  margin-bottom: 1rem;
+  font-weight: 900;
+}
+
+.cat-box p {
+  color: var(--gray);
+  margin-bottom: 3rem;
+  font-size: 1.2rem;
+}
+
+.cat-options {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1.5rem;
+}
+
+.cat-option {
+  background: var(--dark2);
+  border: 3px solid transparent;
+  border-radius: 18px;
+  padding: 2.5rem 1.8rem;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.cat-option:hover {
+  border-color: var(--cat-color);
+  transform: translateY(-8px);
+  box-shadow: 0 15px 40px rgba(0,0,0,0.4);
+}
+
+.cat-option .icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+}
+
+.cat-option h3 {
+  font-size: 1.3rem;
+  color: var(--cat-color);
+  font-weight: 800;
+}
+
+.cat-option.business { --cat-color: var(--business); }
+.cat-option.dating { --cat-color: var(--dating); }
+.cat-option.friendship { --cat-color: var(--friendship); }
+.cat-option.gaming { --cat-color: var(--gaming); }
+.cat-option.language { --cat-color: var(--language); }
+.cat-option.casual { --cat-color: var(--casual); }
+
+/* MATCHING */
+.matching {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+}
+
+.match-box {
+  text-align: center;
+}
+
+.spinner {
+  width: 90px;
+  height: 90px;
+  border: 5px solid var(--dark3);
+  border-top: 5px solid var(--primary);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 2.5rem;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.match-box h2 {
+  font-size: 2.2rem;
+  margin-bottom: 1rem;
+  font-weight: 900;
+}
+
+.match-box p {
+  color: var(--gray);
+  font-size: 1.15rem;
+}
+
+.cancel-btn {
+  margin-top: 2.5rem;
+  background: transparent;
+  border: 2px solid var(--gray);
+  color: var(--gray);
+  padding: 0.8rem 2.5rem;
+  border-radius: 25px;
+  cursor: pointer;
+  font-weight: 700;
+  transition: all 0.3s;
+}
+
+.cancel-btn:hover {
+  border-color: var(--red);
+  color: var(--red);
+}
+
+/* CHAT AREA */
+.chat-area {
+  display: none;
+  flex-direction: column;
+  height: 100%;
+}
+
+.chat-header {
+  background: var(--dark2);
+  padding: 1.2rem 1.5rem;
+  border-bottom: 2px solid var(--dark3);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.stranger-info {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.status-dot-chat {
+  width: 14px;
+  height: 14px;
+  background: var(--green);
+  border-radius: 50%;
+  animation: pulse 2s infinite;
+}
+
+.stranger-name {
+  font-weight: 800;
+  font-size: 1.2rem;
+}
+
+.chat-actions {
+  display: flex;
+  gap: 0.8rem;
+  flex-wrap: wrap;
+}
+
+.action-btn {
+  padding: 0.7rem 1.5rem;
+  border-radius: 20px;
+  border: none;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s;
+  font-size: 0.9rem;
+}
+
+.next-btn {
+  background: var(--primary);
+  color: var(--white);
+}
+
+.next-btn:hover {
+  background: var(--primary-dark);
+  transform: translateY(-2px);
+}
+
+.report-btn {
+  background: transparent;
+  border: 2px solid #f39c12;
+  color: #f39c12;
+}
+
+.report-btn:hover {
+  background: #f39c12;
+  color: var(--white);
+}
+
+.block-btn {
+  background: transparent;
+  border: 2px solid var(--red);
+  color: var(--red);
+}
+
+.block-btn:hover {
+  background: var(--red);
+  color: var(--white);
+}
+
+/* MESSAGES */
+.messages {
+  flex: 1;
+  padding: 2rem 1.5rem;
+  overflow-y: auto;
+  background: var(--dark);
+}
+
+.msg {
+  margin-bottom: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  animation: fadeIn 0.3s;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.msg.stranger { align-items: flex-start; }
+.msg.you { align-items: flex-end; }
+
+.msg-bubble {
+  max-width: 70%;
+  padding: 1rem 1.5rem;
+  border-radius: 20px;
+  word-wrap: break-word;
+  line-height: 1.6;
+  font-size: 1.05rem;
+}
+
+.msg.stranger .msg-bubble {
+  background: var(--dark2);
+  border-bottom-left-radius: 5px;
+}
+
+.msg.you .msg-bubble {
+  background: var(--primary);
+  border-bottom-right-radius: 5px;
+}
+
+.msg-sender {
+  font-size: 0.75rem;
+  color: var(--gray);
+  margin-bottom: 0.5rem;
+  padding: 0 0.5rem;
+  font-weight: 600;
+}
+
+.msg-time {
+  font-size: 0.7rem;
+  color: var(--gray);
+  margin-top: 0.4rem;
+  padding: 0 0.5rem;
+}
+
+.system-msg {
+  text-align: center;
+  color: var(--gray);
+  font-size: 0.9rem;
+  margin: 2rem 0;
+  padding: 1rem;
+  background: rgba(255,255,255,0.05);
+  border-radius: 12px;
+  animation: fadeIn 0.3s;
+}
+
+/* INPUT AREA */
+.input-area {
+  background: var(--dark2);
+  border-top: 2px solid var(--dark3);
+  padding: 1.5rem;
+  display: flex;
+  gap: 1rem;
+}
+
+.msg-input {
+  flex: 1;
+  background: var(--dark);
+  border: 2px solid var(--dark3);
+  color: var(--white);
+  padding: 1rem 1.5rem;
+  border-radius: 25px;
+  font-size: 1.05rem;
+  outline: none;
+  transition: border 0.3s;
+}
+
+.msg-input:focus {
+  border-color: var(--primary);
+}
+
+.send-btn {
+  background: var(--primary);
+  color: var(--white);
+  border: none;
+  padding: 1rem 2.5rem;
+  border-radius: 25px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.send-btn:hover {
+  background: var(--primary-dark);
+  transform: scale(1.05);
+}
+
+.send-btn:disabled {
+  background: var(--gray);
+  cursor: not-allowed;
+}
+
+@media (max-width: 768px) {
+  .header { padding: 1rem; }
+  .cat-options { grid-template-columns: 1fr; }
+  .chat-actions { width: 100%; justify-content: center; }
+  .msg-bubble { max-width: 85%; }
+  .input-area { padding: 1rem; }
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <a href="index.html" class="logo">CupLab</a>
+  <div class="header-right">
+    <div class="status-indicator" id="statusIndicator">
+      <div class="status-dot" id="statusDot"></div>
+      <span id="statusText">Connecting...</span>
+    </div>
+    <div class="category-badge" id="catBadge" style="display:none;"></div>
+    <a href="index.html" class="home-btn">Home</a>
+  </div>
+</div>
+
+<div class="container">
+  
+  <!-- AGE VERIFICATION -->
+  <div class="age-verify" id="ageVerify">
+    <div class="verify-box">
+      <h2>⚠️ Age Verification</h2>
+      <p>You must be <strong>18 years or older</strong> to use CupLab.</p>
+      <p>By clicking "I'm 18+", you confirm that:</p>
+      <ul>
+        <li>✓ You are at least 18 years old</li>
+        <li>✓ You agree to our Terms of Service</li>
+        <li>✓ You will follow Community Guidelines</li>
+        <li>✓ You won't share explicit content</li>
+      </ul>
+      <div class="verify-btns">
+        <button class="btn btn-yes" onclick="verifyAge()">I'm 18+</button>
+        <button class="btn btn-no" onclick="rejectAge()">I'm Under 18</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CATEGORY SELECTION -->
+  <div class="cat-select" id="catSelect">
+    <div class="cat-box">
+      <h2>What do you want to talk about?</h2>
+      <p>Pick a category to get matched with like-minded people</p>
+      <div class="cat-options">
+        <div class="cat-option business" onclick="selectCategory('business', '💼 Business', '#4ecdc4')">
+          <div class="icon">💼</div>
+          <h3>Business</h3>
+        </div>
+        <div class="cat-option dating" onclick="selectCategory('dating', '💕 Dating', '#ff6b9d')">
+          <div class="icon">💕</div>
+          <h3>Dating</h3>
+        </div>
+        <div class="cat-option friendship" onclick="selectCategory('friendship', '🤝 Friends', '#95e1d3')">
+          <div class="icon">🤝</div>
+          <h3>Friends</h3>
+        </div>
+        <div class="cat-option gaming" onclick="selectCategory('gaming', '🎮 Gaming', '#c44569')">
+          <div class="icon">🎮</div>
+          <h3>Gaming</h3>
+        </div>
+        <div class="cat-option language" onclick="selectCategory('language', '🌍 Language', '#f9ca24')">
+          <div class="icon">🌍</div>
+          <h3>Language</h3>
+        </div>
+        <div class="cat-option casual" onclick="selectCategory('casual', '💬 Casual', '#f38181')">
+          <div class="icon">💬</div>
+          <h3>Casual</h3>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MATCHING SCREEN -->
+  <div class="matching" id="matching">
+    <div class="match-box">
+      <div class="spinner"></div>
+      <h2>Finding someone for you...</h2>
+      <p id="matchText">Searching for strangers in your category</p>
+      <button class="cancel-btn" onclick="cancelMatch()">Cancel</button>
+    </div>
+  </div>
+
+  <!-- CHAT AREA -->
+  <div class="chat-area" id="chatArea">
+    <div class="chat-header">
+      <div class="stranger-info">
+        <div class="status-dot-chat"></div>
+        <span class="stranger-name">Stranger</span>
+      </div>
+      <div class="chat-actions">
+        <button class="action-btn next-btn" onclick="nextStranger()">Next</button>
+        <button class="action-btn report-btn" onclick="reportUser()">Report</button>
+        <button class="action-btn block-btn" onclick="blockUser()">Block</button>
+      </div>
+    </div>
+
+    <div class="messages" id="messages">
+      <div class="system-msg">You're now chatting with a random stranger. Say hi!</div>
+    </div>
+
+    <div class="input-area">
+      <input 
+        type="text" 
+        class="msg-input" 
+        id="msgInput" 
+        placeholder="Type your message..."
+        onkeypress="handleKeyPress(event)"
+      >
+      <button class="send-btn" onclick="sendMessage()" id="sendBtn">Send</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// CHANGE THIS TO YOUR SERVER URL
+const SERVER_URL = 'https://your-server-url.onrender.com'; // Change this!
+
+let socket = null;
+let currentCategory = '';
+let currentCategoryColor = '';
+let isConnected = false;
+
+// Initialize Socket.IO connection
+function initSocket() {
+  socket = io(SERVER_URL, {
+    reconnection: true,
+    reconnectionAttempts: 5,
+    reconnectionDelay: 1000
+  });
+
+  socket.on('connect', () => {
+    updateStatus('connected', 'Connected');
+  });
+
+  socket.on('disconnect', () => {
+    updateStatus('disconnected', 'Disconnected');
+    isConnected = false;
+  });
+
+  socket.on('matched', () => {
+    document.getElementById('matching').style.display = 'none';
+    document.getElementById('chatArea').style.display = 'flex';
+    isConnected = true;
+    document.getElementById('msgInput').focus();
+    updateStatus('connected', 'Chatting');
+  });
+
+  socket.on('receive_message', (text) => {
+    addMessage('stranger', text);
+  });
+
+  socket.on('stranger_disconnected', () => {
+    addSystemMessage('Stranger disconnected');
+    isConnected = false;
+    updateStatus('searching', 'Finding new stranger...');
+    setTimeout(() => {
+      document.getElementById('messages').innerHTML = '';
+      document.getElementById('chatArea').style.display = 'none';
+      document.getElementById('matching').style.display = 'flex';
+      socket.emit('find_partner', currentCategory);
+    }, 1500);
+  });
+}
+
+function updateStatus(status, text) {
+  const dot = document.getElementById('statusDot');
+  const statusText = document.getElementById('statusText');
+  dot.className = 'status-dot ' + status;
+  statusText.textContent = text;
+}
+
+// Check for category from URL
+window.onload = function() {
+  initSocket();
+  
+  const params = new URLSearchParams(window.location.search);
+  const cat = params.get('cat');
+  if (cat) {
+    document.getElementById('ageVerify').style.display = 'none';
+    const catMap = {
+      'business': ['business', '💼 Business', '#4ecdc4'],
+      'dating': ['dating', '💕 Dating', '#ff6b9d'],
+      'friendship': ['friendship', '🤝 Friends', '#95e1d3'],
+      'gaming': ['gaming', '🎮 Gaming', '#c44569'],
+      'language': ['language', '🌍 Language', '#f9ca24'],
+      'casual': ['casual', '💬 Casual', '#f38181']
+    };
+    if (catMap[cat]) {
+      selectCategory(...catMap[cat]);
+    } else {
+      document.getElementById('catSelect').style.display = 'flex';
+    }
+  }
+};
+
+function verifyAge() {
+  document.getElementById('ageVerify').style.display = 'none';
+  document.getElementById('catSelect').style.display = 'flex';
+}
+
+function rejectAge() {
+  alert('You must be 18 or older to use CupLab.');
+  window.location.href = 'index.html';
+}
+
+function selectCategory(cat, label, color) {
+  currentCategory = cat;
+  currentCategoryColor = color;
+  
+  const badge = document.getElementById('catBadge');
+  badge.textContent = label;
+  badge.style.setProperty('--cat-color', color);
+  badge.style.display = 'block';
+  
+  document.getElementById('catSelect').style.display = 'none';
+  document.getElementById('matching').style.display = 'flex';
+  
+  updateStatus('searching', 'Searching...');
+  socket.emit('find_partner', currentCategory);
+}
+
+function cancelMatch() {
+  document.getElementById('matching').style.display = 'none';
+  document.getElementById('catSelect').style.display = 'flex';
+  updateStatus('connected', 'Ready');
+}
+
+function sendMessage() {
+  const input = document.getElementById('msgInput');
+  const text = input.value.trim();
+  
+  if (!text || !isConnected) return;
+  
+  addMessage('you', text);
+  socket.emit('send_message', text);
+  input.value = '';
+}
+
+function handleKeyPress(e) {
+  if (e.key === 'Enter') sendMessage();
+}
+
+function addMessage(sender, text) {
+  const messagesDiv = document.getElementById('messages');
+  const msgDiv = document.createElement('div');
+  msgDiv.className = `msg ${sender}`;
+  
+  const time = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+  
+  msgDiv.innerHTML = `
+    <div class="msg-sender">${sender === 'you' ? 'You' : 'Stranger'}</div>
+    <div class="msg-bubble">${escapeHtml(text)}</div>
+    <div class="msg-time">${time}</div>
+  `;
+  
+  messagesDiv.appendChild(msgDiv);
+  messagesDiv.scrollTop = messagesDiv.scrollHeight;
+}
+
+function addSystemMessage(text) {
+  const messagesDiv = document.getElementById('messages');
+  const msgDiv = document.createElement('div');
+  msgDiv.className = 'system-msg';
+  msgDiv.textContent = text;
+  messagesDiv.appendChild(msgDiv);
+  messagesDiv.scrollTop = messagesDiv.scrollHeight;
+}
+
+// NO MORE CONFIRM DIALOGS - SMOOTH TRANSITIONS!
+function nextStranger() {
+  isConnected = false;
+  addSystemMessage('Finding new stranger...');
+  socket.emit('leave_chat');
+  
+  setTimeout(() => {
+    document.getElementById('messages').innerHTML = '';
+    document.getElementById('chatArea').style.display = 'none';
+    document.getElementById('matching').style.display = 'flex';
+    socket.emit('find_partner', currentCategory);
+  }, 800);
+}
+
+function reportUser() {
+  addSystemMessage('User reported. Thanks for keeping CupLab safe!');
+  // In production, send report to server
+  setTimeout(() => {
+    alert('User reported successfully. If they receive 4+ reports, they will be moved to a restricted pool.');
+  }, 500);
+}
+
+function blockUser() {
+  isConnected = false;
+  addSystemMessage('User blocked. Finding new stranger...');
+  socket.emit('leave_chat');
+  
+  setTimeout(() => {
+    document.getElementById('messages').innerHTML = '';
+    document.getElementById('chatArea').style.display = 'none';
+    document.getElementById('matching').style.display = 'flex';
+    socket.emit('find_partner', currentCategory);
+  }, 800);
+}
+
+function escapeHtml(text) {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
+</script>
+
+</body>
+</html>
