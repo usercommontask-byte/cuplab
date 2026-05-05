@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Play & Talk - CupLab | Live Chess Video Chat</title>
+<meta name="robots" content="noindex, nofollow">
+
+<!-- Required Libraries for Chess & WebRTC -->
+<script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<link rel="stylesheet" href="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.css">
+<script src="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
+
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --primary: #ff6b6b;
+  --chess: #9b59b6;
+  --chess-dark: #8e44ad;
+  --dark: #1a1a2e;
+  --dark2: #16213e;
+  --dark3: #0f3460;
+  --white: #eee;
+  --gray: #a8a8a8;
+  --green: #26de81;
+  --red: #e74c3c;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: var(--dark);
+  color: var(--white);
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  overflow-x: hidden;
+}
+
+.header {
+  background: rgba(26, 26, 46, 0.95);
+  border-bottom: 2px solid var(--chess);
+  padding: 1rem 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.logo {
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: var(--chess);
+  text-decoration: none;
+}
+.logo::before { content: '♟️ '; }
+
+.home-btn {
+  background: transparent;
+  border: 2px solid var(--gray);
+  color: var(--gray);
+  padding: 0.6rem 1.4rem;
+  border-radius: 20px;
+  text-decoration: none;
+  font-weight: 600;
+  transition: all 0.3s;
+}
+
+.home-btn:hover { border-color: var(--primary); color: var(--primary); }
+
+/* MATCHING SCREEN */
+.matching {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 2rem;
+}
+
+.spinner {
+  width: 80px;
+  height: 80px;
+  border: 5px solid var(--dark3);
+  border-top: 5px solid var(--chess);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 2rem;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.cancel-btn {
+  margin-top: 2rem;
+  background: transparent;
+  border: 2px solid var(--gray);
+  color: var(--gray);
+  padding: 0.8rem 2.5rem;
+  border-radius: 25px;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+/* GAME SCREEN */
+.game-screen {
+  display: none;
+  flex: 1;
+  padding: 1rem;
+  gap: 1.5rem;
+  max-width: 1400px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+/* VIDEO SECTION */
+.video-section {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  min-width: 300px;
+}
+
+.video-box {
+  background: var(--dark2);
+  border-radius: 15px;
+  overflow: hidden;
+  position: relative;
+  border: 2px solid var(--dark3);
+  aspect-ratio: 4/3;
+  width: 100%;
+}
+
+video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  background: #000;
+}
+
+.video-label {
+  position: absolute;
+  bottom: 10px;
+  left: 10px;
+  background: rgba(0,0,0,0.6);
+  padding: 4px 10px;
+  border-radius: 10px;
+  font-size: 0.8rem;
+  font-weight: bold;
+}
+
+.controls {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.ctrl-btn {
+  padding: 0.8rem 1.5rem;
+  border-radius: 25px;
+  border: none;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s;
+  background: var(--dark3);
+  color: white;
+}
+
+.ctrl-btn.active { background: var(--chess); }
+.ctrl-btn.danger { background: var(--red); }
+.ctrl-btn:hover { filter: brightness(1.2); }
+
+/* CHESS SECTION */
+.chess-section {
+  flex: 1.5;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: var(--dark2);
+  padding: 1.5rem;
+  border-radius: 20px;
+  border: 2px solid var(--dark3);
+  min-width: 320px;
+}
+
+.status-bar {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  background: var(--dark);
+  padding: 1rem;
+  border-radius: 12px;
+}
+
+#gameStatus {
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: var(--chess);
+}
+
+#board {
+  width: 100%;
+  max-width: 500px;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+}
+
+/* Make chessboard styling match dark theme a bit better */
+.white-1e1d7 { background-color: #f0d9b5; color: #b58863; }
+.black-3c85d { background-color: #b58863; color: #f0d9b5; }
+
+/* Desktop vs Mobile layout */
+@media (min-width: 800px) {
+  .game-screen { flex-direction: row; align-items: flex-start; }
+}
+@media (max-width: 799px) {
+  .game-screen { flex-direction: column; overflow-y: auto; }
+  .video-section { flex-direction: row; aspect-ratio: auto; }
+  .video-box { aspect-ratio: 1; }
+  #board { max-width: 100%; }
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <a href="index.html" class="logo">CupLab Chess</a>
+  <a href="index.html" class="home-btn">Leave Match</a>
+</div>
+
+<div class="matching" id="matchingScreen">
+  <div class="spinner"></div>
+  <h2>Finding an Opponent...</h2>
+  <p>Looking for someone to play Chess and Chat with you.</p>
+  <button class="cancel-btn" onclick="window.location.href='index.html'">Cancel</button>
+</div>
+
+<div class="game-screen" id="gameScreen">
+  
+  <div class="video-section">
+    <div class="video-box">
+      <video id="remoteVideo" autoplay playsinline></video>
+      <div class="video-label">Stranger</div>
+    </div>
+    
+    <div class="video-box">
+      <video id="localVideo" autoplay playsinline muted></video>
+      <div class="video-label">You</div>
+    </div>
+
+    <div class="controls">
+      <button class="ctrl-btn active" id="micBtn" onclick="toggleAudio()">🎙️ Mic On</button>
+      <button class="ctrl-btn active" id="camBtn" onclick="toggleVideo()">📹 Cam On</button>
+      <button class="ctrl-btn danger" onclick="nextOpponent()">⏭️ Next Game</button>
+    </div>
+  </div>
+
+  <div class="chess-section">
+    <div class="status-bar">
+      <div id="gameStatus">White to move</div>
+      <div id="playerRole">You are: <strong>...</strong></div>
+    </div>
+    <div id="board"></div>
+  </div>
+
+</div>
+
+<script>
+// --- GLOBAL VARIABLES ---
+const SERVER_URL = window.location.origin;
+let socket = null;
+
+// Chess Variables
+let board = null;
+let game = new Chess();
+let myColor = 'white'; 
+let isMyTurn = false;
+
+// WebRTC Variables
+let localStream;
+let peerConnection;
+const servers = {
+  iceServers: [
+    { urls: ['stun:stun1.l.google.com:19302', 'stun:stun2.l.google.com:19302'] }
+  ]
+};
+
+// --- INITIALIZATION ---
+window.onload = async function() {
+  await setupLocalMedia();
+  initSocket();
+};
+
+// --- CAMERA / MIC SETUP ---
+async function setupLocalMedia() {
+  try {
+    localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+    document.getElementById('localVideo').srcObject = localStream;
+  } catch (error) {
+    alert("Camera/Microphone access is required to Play & Talk. Please enable permissions and refresh.");
+    console.error("Media error:", error);
+  }
+}
+
+// --- SOCKET & MATCHMAKING ---
+function initSocket() {
+  socket = io(SERVER_URL);
+
+  socket.on('connect', () => {
+    socket.emit('find_partner', 'chess');
+  });
+
+  socket.on('matched', async (data) => {
+    // data.role = 'initiator' or 'receiver'
+    // data.color = 'white' or 'black'
+    
+    myColor = data.color;
+    document.getElementById('matchingScreen').style.display = 'none';
+    document.getElementById('gameScreen').style.display = 'flex';
+    document.getElementById('playerRole').innerHTML = `You are: <strong style="color:${myColor === 'white' ? '#fff' : '#333'}">${myColor.toUpperCase()}</strong>`;
+    
+    initChessBoard();
+    updateStatus();
+
+    // Setup WebRTC connection
+    setupWebRTC(data.role);
+  });
+
+  socket.on('stranger_disconnected', () => {
+    alert("Your opponent left the game.");
+    nextOpponent();
+  });
+
+  // --- WEBRTC SIGNALING HANDLERS ---
+  socket.on('webrtc_offer', async (offer) => {
+    if(!peerConnection) return;
+    await peerConnection.setRemoteDescription(new RTCSessionDescription(offer));
+    const answer = await peerConnection.createAnswer();
+    await peerConnection.setLocalDescription(answer);
+    socket.emit('webrtc_answer', answer);
+  });
+
+  socket.on('webrtc_answer', async (answer) => {
+    if(!peerConnection) return;
+    await peerConnection.setRemoteDescription(new RTCSessionDescription(answer));
+  });
+
+  socket.on('webrtc_ice_candidate', async (candidate) => {
+    if(!peerConnection) return;
+    try {
+      await peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
+    } catch (e) { console.error('Error adding received ice candidate', e); }
+  });
+
+  // --- CHESS SIGNALING HANDLER ---
+  socket.on('chess_move', (move) => {
+    game.move(move);
+    board.position(game.fen());
+    updateStatus();
+  });
+}
+
+// --- WEBRTC PEER CONNECTION ---
+function setupWebRTC(role) {
+  peerConnection = new RTCPeerConnection(servers);
+
+  // Add our video/audio tracks to the connection
+  localStream.getTracks().forEach(track => {
+    peerConnection.addTrack(track, localStream);
+  });
+
+  // When we receive the stranger's video/audio track
+  peerConnection.ontrack = (event) => {
+    document.getElementById('remoteVideo').srcObject = event.streams[0];
+  };
+
+  // Send network routing info to stranger
+  peerConnection.onicecandidate = (event) => {
+    if (event.candidate) {
+      socket.emit('webrtc_ice_candidate', event.candidate);
+    }
+  };
+
+  // If we are the initiator, create the offer
+  if (role === 'initiator') {
+    peerConnection.createOffer()
+      .then(offer => {
+        peerConnection.setLocalDescription(offer);
+        socket.emit('webrtc_offer', offer);
+      });
+  }
+}
+
+// --- CHESS LOGIC ---
+function initChessBoard() {
+  game.reset();
+  const config = {
+    draggable: true,
+    position: 'start',
+    orientation: myColor, // flipes board so your color is at bottom
+    onDragStart: onDragStart,
+    onDrop: onDrop,
+    onSnapEnd: onSnapEnd
+  };
+  board = Chessboard('board', config);
+}
+
+// Prevent moving pieces if game is over, or if it's not your turn/piece
+function onDragStart (source, piece, position, orientation) {
+  if (game.game_over()) return false;
+  
+  // Only allow picking up pieces of your own color AND only on your turn
+  if ((game.turn() === 'w' && piece.search(/^b/) !== -1) ||
+      (game.turn() === 'b' && piece.search(/^w/) !== -1) ||
+      (game.turn() === 'w' && myColor === 'black') ||
+      (game.turn() === 'b' && myColor === 'white')) {
+    return false;
+  }
+}
+
+// Validate move via chess.js
+function onDrop (source, target) {
+  // see if the move is legal
+  let move = game.move({
+    from: source,
+    to: target,
+    promotion: 'q' // NOTE: always promote to a queen for simplicity
+  });
+
+  // illegal move
+  if (move === null) return 'snapback';
+
+  // If legal, send move to server
+  socket.emit('chess_move', move);
+  updateStatus();
+}
+
+// update the board position after the piece snap
+function onSnapEnd () {
+  board.position(game.fen());
+}
+
+function updateStatus () {
+  let statusHTML = '';
+
+  let moveColor = game.turn() === 'w' ? 'White' : 'Black';
+
+  if (game.in_checkmate()) {
+    statusHTML = `Game over, ${moveColor} is in checkmate.`;
+  } else if (game.in_draw()) {
+    statusHTML = 'Game drawn';
+  } else {
+    statusHTML = `${moveColor} to move`;
+    if (game.in_check()) {
+      statusHTML += ', ' + moveColor + ' is in check';
+    }
+  }
+
+  document.getElementById('gameStatus').innerText = statusHTML;
+}
+
+// --- UI CONTROLS ---
+function toggleAudio() {
+  const audioTrack = localStream.getAudioTracks()[0];
+  const btn = document.getElementById('micBtn');
+  if (audioTrack.enabled) {
+    audioTrack.enabled = false;
+    btn.innerText = '🔇 Mic Off';
+    btn.classList.remove('active');
+  } else {
+    audioTrack.enabled = true;
+    btn.innerText = '🎙️ Mic On';
+    btn.classList.add('active');
+  }
+}
+
+function toggleVideo() {
+  const videoTrack = localStream.getVideoTracks()[0];
+  const btn = document.getElementById('camBtn');
+  if (videoTrack.enabled) {
+    videoTrack.enabled = false;
+    btn.innerText = '📷 Cam Off';
+    btn.classList.remove('active');
+  } else {
+    videoTrack.enabled = true;
+    btn.innerText = '📹 Cam On';
+    btn.classList.add('active');
+  }
+}
+
+function nextOpponent() {
+  socket.emit('leave_chat');
+  if (peerConnection) {
+    peerConnection.close();
+    peerConnection = null;
+  }
+  document.getElementById('remoteVideo').srcObject = null;
+  
+  // Show matching screen again
+  document.getElementById('gameScreen').style.display = 'none';
+  document.getElementById('matchingScreen').style.display = 'flex';
+  
+  // Re-enter queue
+  setTimeout(() => {
+    socket.emit('find_partner', 'chess');
+  }, 1000);
+}
+</script>
+
+</body>
+</html>
