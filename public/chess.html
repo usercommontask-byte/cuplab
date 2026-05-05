@@ -400,14 +400,18 @@ function setupWebRTC(role) {
 // --- CHESS LOGIC ---
 function initChessBoard() {
   game.reset();
+  
+  // NEW FIX: Tell the board exactly where to download the piece images from
   const config = {
     draggable: true,
     position: 'start',
-    orientation: myColor, // flipes board so your color is at bottom
+    orientation: myColor,
+    pieceTheme: 'https://chessboardjs.com/img/chesspieces/wikipedia/{piece}.png', // <-- THIS LINE FIXES THE PIECES
     onDragStart: onDragStart,
     onDrop: onDrop,
     onSnapEnd: onSnapEnd
   };
+  
   board = Chessboard('board', config);
 }
 
