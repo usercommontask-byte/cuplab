@@ -4,41 +4,36 @@ const { Server } = require('socket.io');
 
 const app = express();
 const server = http.createServer(app);
+const io = new Server(server);
 
-// Enable CORS so your Netlify frontend can talk to this Render backend
-const io = new Server(server, {
-    cors: {
-        origin: "*", // Allows any website to connect
-        methods: ["GET", "POST"]
-    }
-});
-
-// Serve the frontend files (Kept just in case, though Netlify handles the actual HTML now)
+// Serve the frontend files from a 'public' folder
 app.use(express.static('public'));
 
-// Queues for each specific category from your frontend
+// We only need one queue now for Random Chat
 const queues = {
-    business: [],
-    dating: [],
-    friendship: [],
-    gaming: [],
-    language: [],
     casual: []
 };
 
 // Keep track of who is chatting with who
 const activeChats = new Map(); 
 
+// Track total live users
+let totalUsers = 0;
+
 io.on('connection', (socket) => {
-    console.log(`User connected: ${socket.id}`);
+    // Increment user count and broadcast to all connected clients
+    totalUsers++;
+    io.emit('live_users', totalUsers);
+    
+    console.log(`User connected: ${socket.id} | Total Live: ${totalUsers}`);
 
     // 1. MATCHMAKING LOGIC
     socket.on('find_partner', (category) => {
-        // Default to casual if an invalid category is sent
-        const queueName = queues[category] ? category : 'casual';
+        // Force everyone into the casual (random) queue regardless of what the client sends
+        const queueName = 'casual';
         const queue = queues[queueName];
 
-        // Check if someone is already waiting in this specific category
+        // Check if someone is already waiting
         if (queue.length > 0) {
             // Match found!
             const partner = queue.shift(); // Remove partner from queue
@@ -55,7 +50,7 @@ io.on('connection', (socket) => {
             // Tell both clients they are matched
             io.to(roomName).emit('matched');
         } else {
-            // No one is waiting in this category, put this user in the queue
+            // No one is waiting, put this user in the queue
             queue.push(socket);
             socket.waitingCategory = queueName; // Store category to clean up if they disconnect early
         }
@@ -76,7 +71,11 @@ io.on('connection', (socket) => {
     });
 
     socket.on('disconnect', () => {
-        console.log(`User disconnected: ${socket.id}`);
+        // Decrement user count and broadcast to all connected clients
+        totalUsers--;
+        io.emit('live_users', totalUsers);
+        
+        console.log(`User disconnected: ${socket.id} | Total Live: ${totalUsers}`);
         handleDisconnectOrLeave(socket);
     });
 });
@@ -114,5 +113,5 @@ function handleDisconnectOrLeave(socket) {
 // Start the server
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
+    console.log(`Server is running on http://localhost:${PORT}`);
 });
