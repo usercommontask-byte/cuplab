@@ -264,11 +264,6 @@ body {
   font-weight: 800;
 }
 
-.cat-option.business { --cat-color: var(--business); }
-.cat-option.dating { --cat-color: var(--dating); }
-.cat-option.friendship { --cat-color: var(--friendship); }
-.cat-option.gaming { --cat-color: var(--gaming); }
-.cat-option.language { --cat-color: var(--language); }
 .cat-option.casual { --cat-color: var(--casual); }
 
 /* MATCHING */
@@ -603,32 +598,12 @@ body {
 
   <div class="cat-select" id="catSelect">
     <div class="cat-box">
-      <h2>What do you want to talk about?</h2>
-      <p>Pick a category to get matched with like-minded people</p>
+      <h2>Ready to chat?</h2>
+      <p>Click below to get matched instantly!</p>
       <div class="cat-options">
-        <div class="cat-option business" onclick="selectCategory('business', '💼 Business', '#4ecdc4')">
-          <div class="icon">💼</div>
-          <h3>Business</h3>
-        </div>
-        <div class="cat-option dating" onclick="selectCategory('dating', '💕 Dating', '#ff6b9d')">
-          <div class="icon">💕</div>
-          <h3>Dating</h3>
-        </div>
-        <div class="cat-option friendship" onclick="selectCategory('friendship', '🤝 Friends', '#95e1d3')">
-          <div class="icon">🤝</div>
-          <h3>Friends</h3>
-        </div>
-        <div class="cat-option gaming" onclick="selectCategory('gaming', '🎮 Gaming', '#c44569')">
-          <div class="icon">🎮</div>
-          <h3>Gaming</h3>
-        </div>
-        <div class="cat-option language" onclick="selectCategory('language', '🌍 Language', '#f9ca24')">
-          <div class="icon">🌍</div>
-          <h3>Language</h3>
-        </div>
-        <div class="cat-option casual" onclick="selectCategory('casual', '💬 Casual', '#f38181')">
+        <div class="cat-option casual" onclick="selectCategory('casual', '💬 Random Chat', '#f38181')">
           <div class="icon">💬</div>
-          <h3>Casual</h3>
+          <h3>Random Chat</h3>
         </div>
       </div>
     </div>
@@ -638,7 +613,7 @@ body {
     <div class="match-box">
       <div class="spinner"></div>
       <h2>Finding someone for you...</h2>
-      <p id="matchText">Searching for strangers in your category</p>
+      <p id="matchText">Searching for a random stranger</p>
       <button class="cancel-btn" onclick="cancelMatch()">Cancel</button>
     </div>
   </div>
@@ -739,18 +714,10 @@ window.onload = function() {
   if (cat) {
     document.getElementById('ageVerify').style.display = 'none';
     const catMap = {
-      'business': ['business', '💼 Business', '#4ecdc4'],
-      'dating': ['dating', '💕 Dating', '#ff6b9d'],
-      'friendship': ['friendship', '🤝 Friends', '#95e1d3'],
-      'gaming': ['gaming', '🎮 Gaming', '#c44569'],
-      'language': ['language', '🌍 Language', '#f9ca24'],
-      'casual': ['casual', '💬 Casual', '#f38181']
+      'casual': ['casual', '💬 Random Chat', '#f38181']
     };
-    if (catMap[cat]) {
-      selectCategory(...catMap[cat]);
-    } else {
-      document.getElementById('catSelect').style.display = 'flex';
-    }
+    // Default to casual if URL specifies anything else
+    selectCategory(...catMap['casual']);
   }
 };
 
@@ -827,7 +794,6 @@ function addSystemMessage(text) {
   messagesDiv.scrollTop = messagesDiv.scrollHeight;
 }
 
-// NO MORE CONFIRM DIALOGS - SMOOTH TRANSITIONS!
 function nextStranger() {
   isConnected = false;
   addSystemMessage('Finding new stranger...');
