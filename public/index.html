@@ -6,14 +6,14 @@
 
 <!-- PRIMARY SEO META TAGS -->
 <title>CupLab - Chat with Strangers Online Free | Anonymous Random Chat 2025</title>
-<meta name="description" content="Chat with strangers online free at CupLab! Meet random people for business, friendship, dating, gaming, language learning. 100% anonymous, safe, instant matching. No registration.">
+<meta name="description" content="Chat with strangers online free at CupLab! Meet random people instantly. 100% anonymous, safe, instant matching. No registration.">
 <meta name="keywords" content="chat with strangers, anonymous chat, random chat, talk to strangers, free chat rooms, omegle alternative, meet new people, cuplab, online chat">
 <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large">
 <meta name="author" content="CupLab">
 
 <!-- OPEN GRAPH -->
 <meta property="og:title" content="CupLab - Free Anonymous Chat with Strangers">
-<meta property="og:description" content="Meet random strangers instantly! Business, friendship, dating, gaming. 100% free and anonymous.">
+<meta property="og:description" content="Meet random strangers instantly! 100% free and anonymous random chat.">
 <meta property="og:url" content="https://cuplab.com/">
 <meta property="og:type" content="website">
 
@@ -26,12 +26,15 @@
   "@context": "https://schema.org",
   "@type": "WebApplication",
   "name": "CupLab",
-  "description": "Free anonymous chat platform to talk with strangers online based on interests.",
+  "description": "Free anonymous chat platform to talk with strangers online.",
   "url": "https://cuplab.com",
   "applicationCategory": "SocialNetworkingApplication",
   "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"}
 }
 </script>
+
+<!-- Add Socket.io script to listen for live users -->
+<script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
 
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -39,16 +42,12 @@
 :root {
   --primary: #ff6b6b;
   --primary-dark: #ee5a52;
-  --business: #4ecdc4;
-  --dating: #ff6b9d;
-  --friendship: #95e1d3;
-  --gaming: #c44569;
-  --language: #f9ca24;
   --casual: #f38181;
   --dark: #1a1a2e;
   --dark2: #16213e;
   --white: #eee;
   --gray: #a8a8a8;
+  --green: #26de81;
 }
 
 body {
@@ -90,6 +89,12 @@ nav {
   content: '☕ ';
 }
 
+/* Button Wrapper for positioning the badge */
+.btn-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
 .nav-btn {
   background: var(--primary);
   color: var(--white);
@@ -98,11 +103,34 @@ nav {
   text-decoration: none;
   font-weight: 700;
   transition: all 0.3s;
+  display: inline-block;
 }
 
 .nav-btn:hover {
   background: var(--primary-dark);
   transform: translateY(-2px);
+}
+
+/* Live Users Badge Styles */
+.live-badge {
+  position: absolute;
+  top: -10px;
+  right: -15px;
+  background: var(--green);
+  color: var(--dark);
+  font-size: 0.8rem;
+  font-weight: 800;
+  padding: 0.2rem 0.6rem;
+  border-radius: 20px;
+  box-shadow: 0 4px 10px rgba(38, 222, 129, 0.4);
+  white-space: nowrap;
+  animation: pulse-soft 2s infinite;
+  pointer-events: none; /* Allows clicking through to the button */
+}
+
+@keyframes pulse-soft {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
 }
 
 .hero {
@@ -178,8 +206,8 @@ nav {
 }
 
 .cat-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  display: flex;
+  justify-content: center;
   gap: 2rem;
 }
 
@@ -193,6 +221,8 @@ nav {
   cursor: pointer;
   text-decoration: none;
   color: var(--white);
+  max-width: 350px;
+  width: 100%;
 }
 
 .cat-card:hover {
@@ -223,11 +253,6 @@ nav {
   line-height: 1.7;
 }
 
-.cat-card.business { --cat-color: var(--business); }
-.cat-card.dating { --cat-color: var(--dating); }
-.cat-card.friendship { --cat-color: var(--friendship); }
-.cat-card.gaming { --cat-color: var(--gaming); }
-.cat-card.language { --cat-color: var(--language); }
 .cat-card.casual { --cat-color: var(--casual); }
 
 .features {
@@ -315,12 +340,6 @@ footer a {
   text-decoration: none;
   margin: 0 1rem;
 }
-
-@media (max-width: 768px) {
-  .cat-grid {
-    grid-template-columns: 1fr;
-  }
-}
 </style>
 </head>
 <body>
@@ -329,7 +348,11 @@ footer a {
   <div class="container">
     <nav>
       <a href="index.html" class="logo">CupLab</a>
-      <a href="chat.html" class="nav-btn">Start Chatting</a>
+      <div class="btn-wrapper">
+        <a href="chat.html" class="nav-btn">Start Chatting</a>
+        <!-- Nav Badge is slightly smaller to fit the header nicely -->
+        <span class="live-badge" id="navLiveBadge" style="top: -8px; right: -5px; font-size: 0.7rem;">🟢 0</span>
+      </div>
     </nav>
   </div>
 </header>
@@ -339,7 +362,12 @@ footer a {
     <div class="container">
       <h1>Chat with <span class="highlight">Strangers</span><br>Anywhere, Anytime</h1>
       <p>Join CupLab and connect with random people worldwide. Share a virtual cup of coffee and have amazing conversations!</p>
-      <a href="chat.html" class="hero-btn">Start Free Chat Now</a>
+      
+      <div class="btn-wrapper" style="margin-top: 1rem;">
+        <a href="chat.html" class="hero-btn">Start Free Chat Now</a>
+        <span class="live-badge" id="heroLiveBadge">🟢 0 Online</span>
+      </div>
+
       <div class="age-notice">⚠️ You must be 18+ to use CupLab</div>
     </div>
   </section>
@@ -347,41 +375,11 @@ footer a {
   <section class="categories">
     <div class="container">
       <div class="section-title">
-        <h2>Pick Your Vibe</h2>
-        <p>Choose what you want to talk about and get matched instantly</p>
+        <h2>Start Chatting</h2>
+        <p>Get matched instantly with a random stranger</p>
       </div>
       
       <div class="cat-grid">
-        <a href="chat.html?cat=business" class="cat-card business">
-          <div class="cat-icon">💼</div>
-          <h3>Business Talk</h3>
-          <p>Network with entrepreneurs and professionals worldwide</p>
-        </a>
-        
-        <a href="chat.html?cat=dating" class="cat-card dating">
-          <div class="cat-icon">💕</div>
-          <h3>Dating & Flirting</h3>
-          <p>Meet someone special for romance and connections</p>
-        </a>
-        
-        <a href="chat.html?cat=friendship" class="cat-card friendship">
-          <div class="cat-icon">🤝</div>
-          <h3>Make Friends</h3>
-          <p>Find genuine friendships around the world</p>
-        </a>
-        
-        <a href="chat.html?cat=gaming" class="cat-card gaming">
-          <div class="cat-icon">🎮</div>
-          <h3>Gaming Squad</h3>
-          <p>Chat with gamers and find teammates</p>
-        </a>
-        
-        <a href="chat.html?cat=language" class="cat-card language">
-          <div class="cat-icon">🌍</div>
-          <h3>Language Exchange</h3>
-          <p>Practice languages with native speakers</p>
-        </a>
-        
         <a href="chat.html?cat=casual" class="cat-card casual">
           <div class="cat-icon">💬</div>
           <h3>Random Chat</h3>
@@ -442,7 +440,10 @@ footer a {
     <div class="container">
       <h2>Ready to Meet Someone New?</h2>
       <p>Thousands online right now. Start chatting instantly!</p>
-      <a href="chat.html" class="cta-btn">Join CupLab Free</a>
+      <div class="btn-wrapper">
+        <a href="chat.html" class="cta-btn">Join CupLab Free</a>
+        <span class="live-badge" id="ctaLiveBadge">🟢 0 Online</span>
+      </div>
     </div>
   </section>
 </main>
@@ -458,6 +459,26 @@ footer a {
     <p style="margin-top: 1rem;">You must be 18+ to use this service.</p>
   </div>
 </footer>
+
+<script>
+  // Connect to the server to get real-time user count data on the homepage
+  const socket = io(window.location.origin);
+
+  socket.on('live_users', (count) => {
+    // If you are looking at the page, you are effectively 1 user. 
+    // We make sure it doesn't say 0 while testing alone.
+    let displayCount = count > 0 ? count : 1; 
+
+    // Update all 3 badges on the page
+    const navBadge = document.getElementById('navLiveBadge');
+    const heroBadge = document.getElementById('heroLiveBadge');
+    const ctaBadge = document.getElementById('ctaLiveBadge');
+
+    if(navBadge) navBadge.innerText = `🟢 ${displayCount}`;
+    if(heroBadge) heroBadge.innerText = `🟢 ${displayCount} Online`;
+    if(ctaBadge) ctaBadge.innerText = `🟢 ${displayCount} Online`;
+  });
+</script>
 
 </body>
 </html>
