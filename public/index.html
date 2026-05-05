@@ -7,31 +7,18 @@
 <!-- PRIMARY SEO META TAGS -->
 <title>CupLab - Chat with Strangers Online Free | Anonymous Random Chat 2025</title>
 <meta name="description" content="Chat with strangers online free at CupLab! Meet random people instantly. 100% anonymous, safe, instant matching. No registration.">
-<meta name="keywords" content="chat with strangers, anonymous chat, random chat, talk to strangers, free chat rooms, omegle alternative, meet new people, cuplab, online chat">
+<meta name="keywords" content="chat with strangers, anonymous chat, random chat, talk to strangers, free chat rooms, omegle alternative, meet new people, cuplab, online chat, play chess online, video chat chess">
 <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large">
 <meta name="author" content="CupLab">
 
 <!-- OPEN GRAPH -->
 <meta property="og:title" content="CupLab - Free Anonymous Chat with Strangers">
-<meta property="og:description" content="Meet random strangers instantly! 100% free and anonymous random chat.">
+<meta property="og:description" content="Meet random strangers instantly! 100% free and anonymous random chat and interactive games.">
 <meta property="og:url" content="https://cuplab.com/">
 <meta property="og:type" content="website">
 
 <!-- CANONICAL -->
 <link rel="canonical" href="https://cuplab.com/">
-
-<!-- STRUCTURED DATA -->
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "WebApplication",
-  "name": "CupLab",
-  "description": "Free anonymous chat platform to talk with strangers online.",
-  "url": "https://cuplab.com",
-  "applicationCategory": "SocialNetworkingApplication",
-  "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"}
-}
-</script>
 
 <!-- Add Socket.io script to listen for live users -->
 <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
@@ -43,6 +30,8 @@
   --primary: #ff6b6b;
   --primary-dark: #ee5a52;
   --casual: #f38181;
+  --chess: #9b59b6; /* New color for the chess feature */
+  --chess-dark: #8e44ad;
   --dark: #1a1a2e;
   --dark2: #16213e;
   --white: #eee;
@@ -76,6 +65,8 @@ nav {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
 }
 
 .logo {
@@ -89,6 +80,13 @@ nav {
   content: '☕ ';
 }
 
+.nav-actions {
+  display: flex;
+  gap: 1.5rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
 /* Button Wrapper for positioning the badge */
 .btn-wrapper {
   position: relative;
@@ -98,17 +96,26 @@ nav {
 .nav-btn {
   background: var(--primary);
   color: var(--white);
-  padding: 0.8rem 2rem;
+  padding: 0.8rem 1.5rem;
   border-radius: 25px;
   text-decoration: none;
   font-weight: 700;
   transition: all 0.3s;
   display: inline-block;
+  font-size: 0.95rem;
 }
 
 .nav-btn:hover {
   background: var(--primary-dark);
   transform: translateY(-2px);
+}
+
+.nav-btn.btn-chess {
+  background: var(--chess);
+}
+
+.nav-btn.btn-chess:hover {
+  background: var(--chess-dark);
 }
 
 /* Live Users Badge Styles */
@@ -125,7 +132,13 @@ nav {
   box-shadow: 0 4px 10px rgba(38, 222, 129, 0.4);
   white-space: nowrap;
   animation: pulse-soft 2s infinite;
-  pointer-events: none; /* Allows clicking through to the button */
+  pointer-events: none;
+  z-index: 2;
+}
+
+.live-badge.badge-chess {
+  background: #f1c40f; /* distinct color for gaming badge */
+  box-shadow: 0 4px 10px rgba(241, 196, 15, 0.4);
 }
 
 @keyframes pulse-soft {
@@ -156,14 +169,22 @@ nav {
   margin: 0 auto 2.5rem;
 }
 
+.hero-actions {
+  display: flex;
+  gap: 2rem;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: 1rem;
+}
+
 .hero-btn {
   background: var(--primary);
   color: var(--white);
-  padding: 1.3rem 3.5rem;
+  padding: 1.3rem 2.5rem;
   border-radius: 30px;
   text-decoration: none;
   font-weight: 800;
-  font-size: 1.25rem;
+  font-size: 1.15rem;
   display: inline-block;
   transition: all 0.3s;
   box-shadow: 0 10px 30px rgba(255, 107, 107, 0.4);
@@ -173,12 +194,21 @@ nav {
   transform: translateY(-5px);
 }
 
+.hero-btn.btn-chess {
+  background: var(--chess);
+  box-shadow: 0 10px 30px rgba(155, 89, 182, 0.4);
+}
+
+.hero-btn.btn-chess:hover {
+  background: var(--chess-dark);
+}
+
 .age-notice {
   background: rgba(255, 107, 107, 0.15);
   border: 2px solid var(--primary);
   border-radius: 15px;
   padding: 1.2rem;
-  margin: 2.5rem auto 0;
+  margin: 3.5rem auto 0;
   max-width: 550px;
   font-weight: 700;
   color: var(--primary);
@@ -208,6 +238,7 @@ nav {
 .cat-grid {
   display: flex;
   justify-content: center;
+  flex-wrap: wrap;
   gap: 2rem;
 }
 
@@ -223,6 +254,7 @@ nav {
   color: var(--white);
   max-width: 350px;
   width: 100%;
+  position: relative;
 }
 
 .cat-card:hover {
@@ -254,6 +286,7 @@ nav {
 }
 
 .cat-card.casual { --cat-color: var(--casual); }
+.cat-card.chess { --cat-color: var(--chess); }
 
 .features {
   padding: 5rem 0;
@@ -294,39 +327,6 @@ nav {
   line-height: 1.8;
 }
 
-.cta {
-  padding: 6rem 0;
-  background: linear-gradient(135deg, var(--primary) 0%, #c44569 100%);
-  text-align: center;
-}
-
-.cta h2 {
-  font-size: clamp(2.5rem, 5vw, 4rem);
-  font-weight: 900;
-  margin-bottom: 1.5rem;
-}
-
-.cta p {
-  font-size: 1.3rem;
-  margin-bottom: 2.5rem;
-}
-
-.cta-btn {
-  background: var(--white);
-  color: var(--primary);
-  padding: 1.3rem 3.5rem;
-  border-radius: 30px;
-  text-decoration: none;
-  font-weight: 800;
-  font-size: 1.25rem;
-  display: inline-block;
-  transition: all 0.3s;
-}
-
-.cta-btn:hover {
-  transform: translateY(-5px) scale(1.05);
-}
-
 footer {
   background: var(--dark2);
   border-top: 2px solid var(--primary);
@@ -348,10 +348,15 @@ footer a {
   <div class="container">
     <nav>
       <a href="index.html" class="logo">CupLab</a>
-      <div class="btn-wrapper">
-        <a href="chat.html" class="nav-btn">Start Chatting</a>
-        <!-- Nav Badge is slightly smaller to fit the header nicely -->
-        <span class="live-badge" id="navLiveBadge" style="top: -8px; right: -5px; font-size: 0.7rem;">🟢 0</span>
+      <div class="nav-actions">
+        <div class="btn-wrapper">
+          <a href="chat.html?cat=casual" class="nav-btn">Start Chatting</a>
+          <span class="live-badge" id="navLiveBadge" style="top: -8px; right: -5px; font-size: 0.7rem;">🟢 0</span>
+        </div>
+        <div class="btn-wrapper">
+          <a href="chess.html" class="nav-btn btn-chess">Play & Talk ♟️</a>
+          <span class="live-badge badge-chess" id="navChessBadge" style="top: -8px; right: -5px; font-size: 0.7rem;">⚔️ 0</span>
+        </div>
       </div>
     </nav>
   </div>
@@ -361,11 +366,17 @@ footer a {
   <section class="hero">
     <div class="container">
       <h1>Chat with <span class="highlight">Strangers</span><br>Anywhere, Anytime</h1>
-      <p>Join CupLab and connect with random people worldwide. Share a virtual cup of coffee and have amazing conversations!</p>
+      <p>Join CupLab and connect with random people worldwide. Share a virtual cup of coffee, or challenge a stranger to a game of Chess face-to-face!</p>
       
-      <div class="btn-wrapper" style="margin-top: 1rem;">
-        <a href="chat.html" class="hero-btn">Start Free Chat Now</a>
-        <span class="live-badge" id="heroLiveBadge">🟢 0 Online</span>
+      <div class="hero-actions">
+        <div class="btn-wrapper">
+          <a href="chat.html?cat=casual" class="hero-btn">Start Free Chat Now</a>
+          <span class="live-badge" id="heroLiveBadge">🟢 0 Online</span>
+        </div>
+        <div class="btn-wrapper">
+          <a href="chess.html" class="hero-btn btn-chess">Play Chess & Talk ♟️</a>
+          <span class="live-badge badge-chess" id="heroChessBadge">⚔️ 0 Playing</span>
+        </div>
       </div>
 
       <div class="age-notice">⚠️ You must be 18+ to use CupLab</div>
@@ -375,15 +386,24 @@ footer a {
   <section class="categories">
     <div class="container">
       <div class="section-title">
-        <h2>Start Chatting</h2>
-        <p>Get matched instantly with a random stranger</p>
+        <h2>Choose Your Mode</h2>
+        <p>Get matched instantly based on what you want to do</p>
       </div>
       
       <div class="cat-grid">
         <a href="chat.html?cat=casual" class="cat-card casual">
           <div class="cat-icon">💬</div>
           <h3>Random Chat</h3>
-          <p>Talk about anything and everything</p>
+          <p>Text chat about anything and everything anonymously.</p>
+        </a>
+
+        <a href="chess.html" class="cat-card chess">
+          <div class="btn-wrapper" style="position: absolute; top: -10px; right: 10px;">
+             <span class="live-badge badge-chess" id="cardChessBadge">⚔️ 0 Playing</span>
+          </div>
+          <div class="cat-icon">♟️</div>
+          <h3>Play & Talk</h3>
+          <p>Play a live game of Chess while video & audio chatting!</p>
         </a>
       </div>
     </div>
@@ -404,45 +424,16 @@ footer a {
         </div>
         
         <div class="feat-item">
-          <div class="feat-icon">⚡</div>
-          <h3>Instant Matching</h3>
-          <p>Connect with someone new in seconds. No waiting!</p>
+          <div class="feat-icon">♟️</div>
+          <h3>Interactive Games</h3>
+          <p>Break the ice easily by playing a beautifully designed game of Chess.</p>
         </div>
         
         <div class="feat-item">
-          <div class="feat-icon">🛡️</div>
-          <h3>Smart Blocking</h3>
-          <p>Report bad users. 4+ reports = auto-banned to restricted pool.</p>
+          <div class="feat-icon">🎥</div>
+          <h3>WebRTC Video Chat</h3>
+          <p>Secure peer-to-peer video and audio built right into your browser.</p>
         </div>
-        
-        <div class="feat-item">
-          <div class="feat-icon">🌐</div>
-          <h3>Global Community</h3>
-          <p>Meet people from 195+ countries, 24/7.</p>
-        </div>
-        
-        <div class="feat-item">
-          <div class="feat-icon">🆓</div>
-          <h3>Always Free</h3>
-          <p>No subscriptions, no hidden costs. Free forever.</p>
-        </div>
-        
-        <div class="feat-item">
-          <div class="feat-icon">📱</div>
-          <h3>Mobile Ready</h3>
-          <p>Works perfectly on any device.</p>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <section class="cta">
-    <div class="container">
-      <h2>Ready to Meet Someone New?</h2>
-      <p>Thousands online right now. Start chatting instantly!</p>
-      <div class="btn-wrapper">
-        <a href="chat.html" class="cta-btn">Join CupLab Free</a>
-        <span class="live-badge" id="ctaLiveBadge">🟢 0 Online</span>
       </div>
     </div>
   </section>
@@ -461,22 +452,32 @@ footer a {
 </footer>
 
 <script>
-  // Connect to the server to get real-time user count data on the homepage
+  // Connect to the server to get real-time user count data
   const socket = io(window.location.origin);
 
+  // General live users
   socket.on('live_users', (count) => {
-    // If you are looking at the page, you are effectively 1 user. 
-    // We make sure it doesn't say 0 while testing alone.
     let displayCount = count > 0 ? count : 1; 
 
-    // Update all 3 badges on the page
     const navBadge = document.getElementById('navLiveBadge');
     const heroBadge = document.getElementById('heroLiveBadge');
-    const ctaBadge = document.getElementById('ctaLiveBadge');
 
     if(navBadge) navBadge.innerText = `🟢 ${displayCount}`;
     if(heroBadge) heroBadge.innerText = `🟢 ${displayCount} Online`;
-    if(ctaBadge) ctaBadge.innerText = `🟢 ${displayCount} Online`;
+  });
+
+  // Specific Chess users
+  socket.on('live_chess_users', (count) => {
+    // If no one is playing, it's fine to show 0 for a specific game mode
+    let displayCount = count > 0 ? count : 0; 
+
+    const navChessBadge = document.getElementById('navChessBadge');
+    const heroChessBadge = document.getElementById('heroChessBadge');
+    const cardChessBadge = document.getElementById('cardChessBadge');
+
+    if(navChessBadge) navChessBadge.innerText = `⚔️ ${displayCount}`;
+    if(heroChessBadge) heroChessBadge.innerText = `⚔️ ${displayCount} Playing`;
+    if(cardChessBadge) cardChessBadge.innerText = `⚔️ ${displayCount} Playing`;
   });
 </script>
 
