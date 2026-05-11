@@ -118,6 +118,17 @@ io.on('connection', (socket) => {
         const chat = activeChats.get(socket.id);
         if (chat) socket.to(chat.room).emit('chess_move', move);
     });
+
+    // --- NEW: LOBBY & GAME SELECTION SIGNALING ---
+    socket.on('select_game', (gameName) => {
+        const chat = activeChats.get(socket.id);
+        if (chat) socket.to(chat.room).emit('game_selected', gameName);
+    });
+
+    socket.on('exit_game', () => {
+        const chat = activeChats.get(socket.id);
+        if (chat) socket.to(chat.room).emit('return_to_lobby');
+    });
 });
 
 // Helper function to handle cleaning up when someone leaves or disconnects
