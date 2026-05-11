@@ -53,7 +53,7 @@ body {
   color: var(--chess);
   text-decoration: none;
 }
-.logo::before { content: '🎮 '; } /* Updated icon for generic games */
+.logo::before { content: '🎮 '; } 
 
 .home-btn {
   background: transparent;
@@ -185,29 +185,59 @@ video {
   min-width: 320px;
 }
 
-/* Game Lobby Specifics */
+/* ==================================
+   COOL NEW LOBBY UI
+=================================== */
 #lobbyMenu {
   width: 100%;
   text-align: center;
-  padding: 2rem 0;
-}
-.game-option-btn {
-  font-size: 1.2rem;
-  padding: 1.5rem 3rem;
-  background: var(--chess);
-  color: white;
-  border: none;
-  border-radius: 15px;
-  cursor: pointer;
-  font-weight: 800;
-  transition: transform 0.2s;
-  box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-}
-.game-option-btn:hover {
-  transform: translateY(-5px);
-  background: var(--chess-dark);
+  padding: 1rem 0;
 }
 
+.lobby-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1.5rem;
+  width: 100%;
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+.game-card {
+  background: var(--dark3);
+  border: 2px solid transparent;
+  border-radius: 15px;
+  padding: 2rem 1rem;
+  cursor: pointer;
+  transition: all 0.3s;
+  box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+}
+
+.game-card:hover {
+  transform: translateY(-8px);
+  border-color: var(--chess);
+  background: rgba(155, 89, 182, 0.15);
+}
+
+.card-icon {
+  font-size: 3.5rem;
+  margin-bottom: 1rem;
+}
+
+.game-card h3 {
+  font-size: 1.2rem;
+  margin-bottom: 0.5rem;
+  color: var(--chess);
+}
+
+.game-card p {
+  font-size: 0.9rem;
+  color: var(--gray);
+}
+
+/* ==================================
+   STATUS BAR & CHESS
+=================================== */
 .status-bar {
   width: 100%;
   display: flex;
@@ -219,7 +249,7 @@ video {
   border-radius: 12px;
 }
 
-#gameStatus {
+#gameStatus, #tttStatusText {
   font-size: 1.2rem;
   font-weight: 800;
   color: var(--chess);
@@ -236,11 +266,39 @@ video {
 
 .white-1e1d7 { background-color: #f0d9b5; color: #b58863; }
 .black-3c85d { background-color: #b58863; color: #f0d9b5; }
+.highlight-square { box-shadow: inset 0 0 5px 4px rgba(255, 235, 59, 0.8) !important; }
 
-/* Highlight class for Tap-to-Move */
-.highlight-square {
-  box-shadow: inset 0 0 5px 4px rgba(255, 235, 59, 0.8) !important;
+/* ==================================
+   TIC-TAC-TOE UI
+=================================== */
+.ttt-board {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  max-width: 400px;
+  width: 100%;
+  margin: 2rem auto;
+  background: var(--dark3);
+  padding: 12px;
+  border-radius: 15px;
 }
+
+.ttt-cell {
+  background: var(--dark);
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 4rem;
+  font-weight: 900;
+  cursor: pointer;
+  border-radius: 10px;
+  transition: background 0.2s;
+}
+
+.ttt-cell:hover { background: var(--dark2); }
+.ttt-cell.x { color: var(--primary); }
+.ttt-cell.o { color: var(--green); }
 
 /* Desktop vs Mobile layout */
 @media (min-width: 800px) {
@@ -251,6 +309,7 @@ video {
   .video-section { flex-direction: row; aspect-ratio: auto; }
   .video-box { aspect-ratio: 1; }
   #board { max-width: 100%; }
+  .ttt-cell { font-size: 3rem; }
 }
 </style>
 </head>
@@ -291,12 +350,21 @@ video {
   <div class="chess-section">
     
     <div id="lobbyMenu">
-      <h2 style="margin-bottom: 2rem; font-size: 2rem;">Game Lobby</h2>
-      <p style="color: var(--gray); margin-bottom: 2rem;">You're connected! Pick a game to play.</p>
+      <h2 style="margin-bottom: 1rem; font-size: 2.2rem;">Choose a Game</h2>
+      <p style="color: var(--gray); margin-bottom: 2rem;">You're connected! Pick a game to start playing.</p>
       
-      <button class="game-option-btn" onclick="startGame('chess')">♟️ Play Chess</button>
-      
-      <p style="color: var(--gray); margin-top: 3rem; font-size: 0.9rem;">(More games like Checkers & Tic-Tac-Toe coming soon)</p>
+      <div class="lobby-grid">
+        <div class="game-card" onclick="startGame('chess')">
+          <div class="card-icon">♟️</div>
+          <h3>Chess</h3>
+          <p>Classic strategy.</p>
+        </div>
+        <div class="game-card" onclick="startGame('ttt')">
+          <div class="card-icon">❌</div>
+          <h3>Tic-Tac-Toe</h3>
+          <p>Quick and casual.</p>
+        </div>
+      </div>
     </div>
 
     <div id="chessGameWrapper" style="display: none; width: 100%;">
@@ -310,6 +378,18 @@ video {
       <button class="ctrl-btn danger" onclick="exitToLobby()" style="margin-top: 1.5rem; width: 100%;">🚪 Exit Game (Return to Lobby)</button>
     </div>
 
+    <div id="tttGameWrapper" style="display: none; width: 100%;">
+      <div class="status-bar">
+        <div id="tttStatusText">X's Turn</div>
+        <div id="tttRole">You are: <strong>...</strong></div>
+      </div>
+
+      <div class="ttt-board" id="tttBoard"></div>
+
+      <button class="ctrl-btn" onclick="resetTtt()" style="margin-top: 1rem; width: 100%; background: var(--dark3); color: white;">🔄 Play Again</button>
+      <button class="ctrl-btn danger" onclick="exitToLobby()" style="margin-top: 1rem; width: 100%;">🚪 Exit Game (Return to Lobby)</button>
+    </div>
+
   </div>
 
 </div>
@@ -318,12 +398,18 @@ video {
 // --- GLOBAL VARIABLES ---
 const SERVER_URL = window.location.origin;
 let socket = null;
+let myColor = 'white'; // White corresponds to 'X' in Tic-Tac-Toe
 
 // Chess Variables
 let board = null;
 let game = new Chess();
-let myColor = 'white'; 
-let selectedSquare = null; // Used for Tap-to-Move logic
+let selectedSquare = null; 
+
+// Tic-Tac-Toe Variables
+let tttBoardState = ['', '', '', '', '', '', '', '', ''];
+let myTttSymbol = 'X';
+let currentTttTurn = 'X';
+let tttGameOver = false;
 
 // WebRTC Variables
 let localStream;
@@ -356,23 +442,16 @@ function initSocket() {
   socket = io(SERVER_URL);
 
   socket.on('connect', () => {
-    socket.emit('find_partner', 'chess'); // Keep routing through the 'chess' matchmaking queue for now
+    socket.emit('find_partner', 'chess');
   });
 
   socket.on('matched', async (data) => {
-    // data.role = 'initiator' or 'receiver'
-    // data.color = 'white' or 'black'
-    
     myColor = data.color;
     
-    // Hide matching, show game screen layout
     document.getElementById('matchingScreen').style.display = 'none';
     document.getElementById('gameScreen').style.display = 'flex';
     
-    // Enter Lobby State by Default
     enterLobbyUI();
-
-    // Setup WebRTC connection immediately
     setupWebRTC(data.role);
   });
 
@@ -411,12 +490,21 @@ function initSocket() {
     } catch (e) { console.error('Error adding received ice candidate', e); }
   });
 
-  // --- CHESS SIGNALING HANDLER ---
-  socket.on('chess_move', (move) => {
-    game.move(move);
-    board.position(game.fen());
-    updateStatus();
-    removeHighlights(); // Ensure highlights clear when receiving a move
+  // --- GAME MOVES (HIJACKED FOR BOTH CHESS AND TTT) ---
+  socket.on('chess_move', (data) => {
+    if (data && data.type === 'ttt') {
+        // It's a Tic-Tac-Toe move!
+        processTttMove(data.index, data.symbol);
+    } else if (data && data.type === 'ttt_reset') {
+        // Reset Tic-Tac-Toe board
+        initTttBoard();
+    } else {
+        // It's a normal Chess move!
+        game.move(data);
+        board.position(game.fen());
+        updateStatus();
+        removeHighlights(); 
+    }
   });
 }
 
@@ -433,13 +521,10 @@ function exitToLobby() {
 
 function enterLobbyUI() {
   document.getElementById('chessGameWrapper').style.display = 'none';
+  document.getElementById('tttGameWrapper').style.display = 'none';
   document.getElementById('lobbyMenu').style.display = 'block';
   
-  // Clean up board if it exists
-  if (board) {
-    board.destroy();
-    board = null;
-  }
+  if (board) { board.destroy(); board = null; }
   selectedSquare = null;
 }
 
@@ -451,6 +536,11 @@ function enterGameUI(gameName) {
     document.getElementById('playerRole').innerHTML = `You are: <strong style="color:${myColor === 'white' ? '#fff' : '#333'}">${myColor.toUpperCase()}</strong>`;
     initChessBoard();
     updateStatus();
+  } else if (gameName === 'ttt') {
+    document.getElementById('tttGameWrapper').style.display = 'block';
+    myTttSymbol = (myColor === 'white') ? 'X' : 'O'; // White is X, Black is O
+    document.getElementById('tttRole').innerHTML = `You are: <strong style="color:${myTttSymbol === 'X' ? 'var(--primary)' : 'var(--green)'}">${myTttSymbol}</strong>`;
+    initTttBoard();
   }
 }
 
@@ -481,60 +571,125 @@ function setupWebRTC(role) {
   }
 }
 
-// --- CHESS LOGIC (TAP TO MOVE) ---
+// ==========================================
+// NEW: TIC-TAC-TOE LOGIC
+// ==========================================
+function initTttBoard() {
+  tttBoardState = ['', '', '', '', '', '', '', '', ''];
+  currentTttTurn = 'X';
+  tttGameOver = false;
+  updateTttStatus();
+  renderTttBoard();
+}
+
+function renderTttBoard() {
+  const boardDiv = document.getElementById('tttBoard');
+  boardDiv.innerHTML = '';
+  tttBoardState.forEach((cell, index) => {
+    const cellDiv = document.createElement('div');
+    cellDiv.className = 'ttt-cell ' + (cell === 'X' ? 'x' : (cell === 'O' ? 'o' : ''));
+    cellDiv.innerText = cell;
+    cellDiv.onclick = () => makeTttMove(index);
+    boardDiv.appendChild(cellDiv);
+  });
+}
+
+function makeTttMove(index) {
+  if (tttGameOver || tttBoardState[index] !== '' || currentTttTurn !== myTttSymbol) return;
+  
+  // We reuse the existing socket event to save backend changes!
+  socket.emit('chess_move', { type: 'ttt', index: index, symbol: myTttSymbol });
+  processTttMove(index, myTttSymbol);
+}
+
+function processTttMove(index, symbol) {
+  tttBoardState[index] = symbol;
+  currentTttTurn = (symbol === 'X') ? 'O' : 'X';
+  renderTttBoard();
+  checkTttWin();
+}
+
+function checkTttWin() {
+  const winPatterns = [
+    [0,1,2], [3,4,5], [6,7,8], // Rows
+    [0,3,6], [1,4,7], [2,5,8], // Cols
+    [0,4,8], [2,4,6]           // Diagonals
+  ];
+
+  for (let pattern of winPatterns) {
+    const [a, b, c] = pattern;
+    if (tttBoardState[a] && tttBoardState[a] === tttBoardState[b] && tttBoardState[a] === tttBoardState[c]) {
+      document.getElementById('tttStatusText').innerText = `${tttBoardState[a]} Wins!`;
+      tttGameOver = true;
+      return;
+    }
+  }
+
+  if (!tttBoardState.includes('')) {
+    document.getElementById('tttStatusText').innerText = "It's a Draw!";
+    tttGameOver = true;
+    return;
+  }
+
+  updateTttStatus();
+}
+
+function updateTttStatus() {
+  if (tttGameOver) return;
+  if (currentTttTurn === myTttSymbol) {
+    document.getElementById('tttStatusText').innerText = "Your Turn!";
+  } else {
+    document.getElementById('tttStatusText').innerText = "Waiting for Opponent...";
+  }
+}
+
+function resetTtt() {
+  socket.emit('chess_move', { type: 'ttt_reset' });
+  initTttBoard();
+}
+
+// ==========================================
+// CHESS LOGIC (TAP TO MOVE)
+// ==========================================
 function initChessBoard() {
   game.reset();
   selectedSquare = null;
-  
   const config = {
-    draggable: false, // Disabled drag to allow custom Tap-to-Move
+    draggable: false, 
     position: 'start',
     orientation: myColor,
     pieceTheme: 'https://chessboardjs.com/img/chesspieces/wikipedia/{piece}.png'
   };
-  
   board = Chessboard('board', config);
 }
 
-// Global click listener for board squares (handles tap-to-move)
 $(document).on('click', '#board .square-55d63', function() {
-  // Ignore clicks if game is over or we aren't in the chess view
   if (game.game_over() || $('#chessGameWrapper').css('display') === 'none') return;
   
   let square = $(this).attr('data-square');
   let turnColor = game.turn() === 'w' ? 'white' : 'black';
   
-  // Only allow interacting if it is our turn
   if (turnColor !== myColor) return;
   
   let piece = game.get(square);
 
   if (selectedSquare === null) {
-    // Stage 1: Selecting a piece to move
     if (piece && piece.color === game.turn()) {
       selectedSquare = square;
       highlightSquare(square);
     }
   } else {
-    // Stage 2: Attempting to place the piece
-    let move = game.move({
-      from: selectedSquare,
-      to: square,
-      promotion: 'q' // always promote to queen
-    });
+    let move = game.move({ from: selectedSquare, to: square, promotion: 'q' });
 
     if (move === null) {
-      // Invalid move. Check if they clicked another one of their own pieces to switch selection
       if (piece && piece.color === game.turn()) {
         selectedSquare = square;
         highlightSquare(square);
       } else {
-        // Clicked invalid empty square or enemy piece, cancel selection
         selectedSquare = null;
         removeHighlights();
       }
     } else {
-      // Valid Move executed
       selectedSquare = null;
       removeHighlights();
       socket.emit('chess_move', move);
@@ -567,7 +722,6 @@ function updateStatus () {
       statusHTML += ', ' + moveColor + ' is in check';
     }
   }
-
   document.getElementById('gameStatus').innerText = statusHTML;
 }
 
@@ -608,14 +762,11 @@ function nextOpponent() {
   }
   document.getElementById('remoteVideo').srcObject = null;
   
-  // Show matching screen again
   document.getElementById('gameScreen').style.display = 'none';
   document.getElementById('matchingScreen').style.display = 'flex';
   
-  // Clean up Lobby & Board
   enterLobbyUI();
   
-  // Re-enter queue
   setTimeout(() => {
     socket.emit('find_partner', 'chess');
   }, 1000);
