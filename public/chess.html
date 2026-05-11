@@ -3,10 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Play & Talk - CupLab | Live Chess Video Chat</title>
+<title>Play & Talk - CupLab | Live Game Lobby</title>
 <meta name="robots" content="noindex, nofollow">
 
-<!-- Required Libraries for Chess & WebRTC -->
 <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <link rel="stylesheet" href="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.css">
@@ -54,7 +53,7 @@ body {
   color: var(--chess);
   text-decoration: none;
 }
-.logo::before { content: '♟️ '; }
+.logo::before { content: '🎮 '; } /* Updated icon for generic games */
 
 .home-btn {
   background: transparent;
@@ -173,7 +172,7 @@ video {
 .ctrl-btn.danger { background: var(--red); }
 .ctrl-btn:hover { filter: brightness(1.2); }
 
-/* CHESS SECTION */
+/* CHESS / LOBBY SECTION */
 .chess-section {
   flex: 1.5;
   display: flex;
@@ -184,6 +183,29 @@ video {
   border-radius: 20px;
   border: 2px solid var(--dark3);
   min-width: 320px;
+}
+
+/* Game Lobby Specifics */
+#lobbyMenu {
+  width: 100%;
+  text-align: center;
+  padding: 2rem 0;
+}
+.game-option-btn {
+  font-size: 1.2rem;
+  padding: 1.5rem 3rem;
+  background: var(--chess);
+  color: white;
+  border: none;
+  border-radius: 15px;
+  cursor: pointer;
+  font-weight: 800;
+  transition: transform 0.2s;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+}
+.game-option-btn:hover {
+  transform: translateY(-5px);
+  background: var(--chess-dark);
 }
 
 .status-bar {
@@ -209,11 +231,16 @@ video {
   border-radius: 8px;
   overflow: hidden;
   box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+  margin: 0 auto;
 }
 
-/* Make chessboard styling match dark theme a bit better */
 .white-1e1d7 { background-color: #f0d9b5; color: #b58863; }
 .black-3c85d { background-color: #b58863; color: #f0d9b5; }
+
+/* Highlight class for Tap-to-Move */
+.highlight-square {
+  box-shadow: inset 0 0 5px 4px rgba(255, 235, 59, 0.8) !important;
+}
 
 /* Desktop vs Mobile layout */
 @media (min-width: 800px) {
@@ -230,14 +257,14 @@ video {
 <body>
 
 <div class="header">
-  <a href="index.html" class="logo">CupLab Chess</a>
+  <a href="index.html" class="logo">CupLab Games</a>
   <a href="index.html" class="home-btn">Leave Match</a>
 </div>
 
 <div class="matching" id="matchingScreen">
   <div class="spinner"></div>
   <h2>Finding an Opponent...</h2>
-  <p>Looking for someone to play Chess and Chat with you.</p>
+  <p>Looking for someone to play Games and Chat with you.</p>
   <button class="cancel-btn" onclick="window.location.href='index.html'">Cancel</button>
 </div>
 
@@ -257,16 +284,32 @@ video {
     <div class="controls">
       <button class="ctrl-btn active" id="micBtn" onclick="toggleAudio()">🎙️ Mic On</button>
       <button class="ctrl-btn active" id="camBtn" onclick="toggleVideo()">📹 Cam On</button>
-      <button class="ctrl-btn danger" onclick="nextOpponent()">⏭️ Next Game</button>
+      <button class="ctrl-btn danger" onclick="nextOpponent()">⏭️ Next Person</button>
     </div>
   </div>
 
   <div class="chess-section">
-    <div class="status-bar">
-      <div id="gameStatus">White to move</div>
-      <div id="playerRole">You are: <strong>...</strong></div>
+    
+    <div id="lobbyMenu">
+      <h2 style="margin-bottom: 2rem; font-size: 2rem;">Game Lobby</h2>
+      <p style="color: var(--gray); margin-bottom: 2rem;">You're connected! Pick a game to play.</p>
+      
+      <button class="game-option-btn" onclick="startGame('chess')">♟️ Play Chess</button>
+      
+      <p style="color: var(--gray); margin-top: 3rem; font-size: 0.9rem;">(More games like Checkers & Tic-Tac-Toe coming soon)</p>
     </div>
-    <div id="board"></div>
+
+    <div id="chessGameWrapper" style="display: none; width: 100%;">
+      <div class="status-bar">
+        <div id="gameStatus">White to move</div>
+        <div id="playerRole">You are: <strong>...</strong></div>
+      </div>
+      
+      <div id="board"></div>
+      
+      <button class="ctrl-btn danger" onclick="exitToLobby()" style="margin-top: 1.5rem; width: 100%;">🚪 Exit Game (Return to Lobby)</button>
+    </div>
+
   </div>
 
 </div>
@@ -280,7 +323,7 @@ let socket = null;
 let board = null;
 let game = new Chess();
 let myColor = 'white'; 
-let isMyTurn = false;
+let selectedSquare = null; // Used for Tap-to-Move logic
 
 // WebRTC Variables
 let localStream;
@@ -313,7 +356,7 @@ function initSocket() {
   socket = io(SERVER_URL);
 
   socket.on('connect', () => {
-    socket.emit('find_partner', 'chess');
+    socket.emit('find_partner', 'chess'); // Keep routing through the 'chess' matchmaking queue for now
   });
 
   socket.on('matched', async (data) => {
@@ -321,20 +364,30 @@ function initSocket() {
     // data.color = 'white' or 'black'
     
     myColor = data.color;
+    
+    // Hide matching, show game screen layout
     document.getElementById('matchingScreen').style.display = 'none';
     document.getElementById('gameScreen').style.display = 'flex';
-    document.getElementById('playerRole').innerHTML = `You are: <strong style="color:${myColor === 'white' ? '#fff' : '#333'}">${myColor.toUpperCase()}</strong>`;
     
-    initChessBoard();
-    updateStatus();
+    // Enter Lobby State by Default
+    enterLobbyUI();
 
-    // Setup WebRTC connection
+    // Setup WebRTC connection immediately
     setupWebRTC(data.role);
   });
 
   socket.on('stranger_disconnected', () => {
-    alert("Your opponent left the game.");
+    alert("Your partner left.");
     nextOpponent();
+  });
+
+  // --- LOBBY SIGNALING ---
+  socket.on('game_selected', (gameName) => {
+    enterGameUI(gameName);
+  });
+
+  socket.on('return_to_lobby', () => {
+    enterLobbyUI();
   });
 
   // --- WEBRTC SIGNALING HANDLERS ---
@@ -363,31 +416,62 @@ function initSocket() {
     game.move(move);
     board.position(game.fen());
     updateStatus();
+    removeHighlights(); // Ensure highlights clear when receiving a move
   });
+}
+
+// --- GAME LOBBY LOGIC ---
+function startGame(gameName) {
+  socket.emit('select_game', gameName);
+  enterGameUI(gameName);
+}
+
+function exitToLobby() {
+  socket.emit('exit_game');
+  enterLobbyUI();
+}
+
+function enterLobbyUI() {
+  document.getElementById('chessGameWrapper').style.display = 'none';
+  document.getElementById('lobbyMenu').style.display = 'block';
+  
+  // Clean up board if it exists
+  if (board) {
+    board.destroy();
+    board = null;
+  }
+  selectedSquare = null;
+}
+
+function enterGameUI(gameName) {
+  document.getElementById('lobbyMenu').style.display = 'none';
+  
+  if (gameName === 'chess') {
+    document.getElementById('chessGameWrapper').style.display = 'block';
+    document.getElementById('playerRole').innerHTML = `You are: <strong style="color:${myColor === 'white' ? '#fff' : '#333'}">${myColor.toUpperCase()}</strong>`;
+    initChessBoard();
+    updateStatus();
+  }
 }
 
 // --- WEBRTC PEER CONNECTION ---
 function setupWebRTC(role) {
   peerConnection = new RTCPeerConnection(servers);
 
-  // Add our video/audio tracks to the connection
   localStream.getTracks().forEach(track => {
     peerConnection.addTrack(track, localStream);
   });
 
-  // When we receive the stranger's video/audio track
   peerConnection.ontrack = (event) => {
     document.getElementById('remoteVideo').srcObject = event.streams[0];
   };
 
-  // Send network routing info to stranger
   peerConnection.onicecandidate = (event) => {
     if (event.candidate) {
       socket.emit('webrtc_ice_candidate', event.candidate);
     }
   };
 
-  // If we are the initiator, create the offer
   if (role === 'initiator') {
     peerConnection.createOffer()
       .then(offer => {
@@ -397,62 +481,80 @@ function setupWebRTC(role) {
   }
 }
 
-// --- CHESS LOGIC ---
+// --- CHESS LOGIC (TAP TO MOVE) ---
 function initChessBoard() {
   game.reset();
+  selectedSquare = null;
   
-  // NEW FIX: Tell the board exactly where to download the piece images from
   const config = {
-    draggable: true,
+    draggable: false, // Disabled drag to allow custom Tap-to-Move
     position: 'start',
     orientation: myColor,
-    pieceTheme: 'https://chessboardjs.com/img/chesspieces/wikipedia/{piece}.png', // <-- THIS LINE FIXES THE PIECES
-    onDragStart: onDragStart,
-    onDrop: onDrop,
-    onSnapEnd: onSnapEnd
+    pieceTheme: 'https://chessboardjs.com/img/chesspieces/wikipedia/{piece}.png'
   };
   
   board = Chessboard('board', config);
 }
 
-// Prevent moving pieces if game is over, or if it's not your turn/piece
-function onDragStart (source, piece, position, orientation) {
-  if (game.game_over()) return false;
+// Global click listener for board squares (handles tap-to-move)
+$(document).on('click', '#board .square-55d63', function() {
+  // Ignore clicks if game is over or we aren't in the chess view
+  if (game.game_over() || $('#chessGameWrapper').css('display') === 'none') return;
   
-  // Only allow picking up pieces of your own color AND only on your turn
-  if ((game.turn() === 'w' && piece.search(/^b/) !== -1) ||
-      (game.turn() === 'b' && piece.search(/^w/) !== -1) ||
-      (game.turn() === 'w' && myColor === 'black') ||
-      (game.turn() === 'b' && myColor === 'white')) {
-    return false;
+  let square = $(this).attr('data-square');
+  let turnColor = game.turn() === 'w' ? 'white' : 'black';
+  
+  // Only allow interacting if it is our turn
+  if (turnColor !== myColor) return;
+  
+  let piece = game.get(square);
+
+  if (selectedSquare === null) {
+    // Stage 1: Selecting a piece to move
+    if (piece && piece.color === game.turn()) {
+      selectedSquare = square;
+      highlightSquare(square);
+    }
+  } else {
+    // Stage 2: Attempting to place the piece
+    let move = game.move({
+      from: selectedSquare,
+      to: square,
+      promotion: 'q' // always promote to queen
+    });
+
+    if (move === null) {
+      // Invalid move. Check if they clicked another one of their own pieces to switch selection
+      if (piece && piece.color === game.turn()) {
+        selectedSquare = square;
+        highlightSquare(square);
+      } else {
+        // Clicked invalid empty square or enemy piece, cancel selection
+        selectedSquare = null;
+        removeHighlights();
+      }
+    } else {
+      // Valid Move executed
+      selectedSquare = null;
+      removeHighlights();
+      socket.emit('chess_move', move);
+      board.position(game.fen());
+      updateStatus();
+    }
   }
+});
+
+function highlightSquare(square) {
+  $('#board .square-55d63').removeClass('highlight-square');
+  $('#board .square-' + square).addClass('highlight-square');
 }
 
-// Validate move via chess.js
-function onDrop (source, target) {
-  // see if the move is legal
-  let move = game.move({
-    from: source,
-    to: target,
-    promotion: 'q' // NOTE: always promote to a queen for simplicity
-  });
-
-  // illegal move
-  if (move === null) return 'snapback';
-
-  // If legal, send move to server
-  socket.emit('chess_move', move);
-  updateStatus();
-}
-
-// update the board position after the piece snap
-function onSnapEnd () {
-  board.position(game.fen());
+function removeHighlights() {
+  $('#board .square-55d63').removeClass('highlight-square');
 }
 
 function updateStatus () {
   let statusHTML = '';
-
   let moveColor = game.turn() === 'w' ? 'White' : 'Black';
 
   if (game.in_checkmate()) {
@@ -509,6 +611,9 @@ function nextOpponent() {
   // Show matching screen again
   document.getElementById('gameScreen').style.display = 'none';
   document.getElementById('matchingScreen').style.display = 'flex';
+  
+  // Clean up Lobby & Board
+  enterLobbyUI();
   
   // Re-enter queue
   setTimeout(() => {
