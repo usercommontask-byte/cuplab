@@ -4,23 +4,19 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<!-- PRIMARY SEO META TAGS -->
-<title>CupLab - Chat with Strangers Online Free | Anonymous Random Chat 2025</title>
-<meta name="description" content="Chat with strangers online free at CupLab! Meet random people instantly. 100% anonymous, safe, instant matching. No registration.">
-<meta name="keywords" content="chat with strangers, anonymous chat, random chat, talk to strangers, free chat rooms, omegle alternative, meet new people, cuplab, online chat, play chess online, video chat chess">
+<title>CupLab - Chat with Strangers & Play Games Online Free | Anonymous Random Chat 2025</title>
+<meta name="description" content="Chat with strangers online free at CupLab! Meet random people instantly, play games like Chess, and video chat. 100% anonymous, safe, instant matching.">
+<meta name="keywords" content="chat with strangers, anonymous chat, random chat, talk to strangers, free chat rooms, play games online, video chat games, cuplab">
 <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large">
 <meta name="author" content="CupLab">
 
-<!-- OPEN GRAPH -->
-<meta property="og:title" content="CupLab - Free Anonymous Chat with Strangers">
-<meta property="og:description" content="Meet random strangers instantly! 100% free and anonymous random chat and interactive games.">
+<meta property="og:title" content="CupLab - Free Anonymous Chat & Live Games">
+<meta property="og:description" content="Meet random strangers instantly! 100% free and anonymous random chat and interactive video games.">
 <meta property="og:url" content="https://cuplab.com/">
 <meta property="og:type" content="website">
 
-<!-- CANONICAL -->
 <link rel="canonical" href="https://cuplab.com/">
 
-<!-- Add Socket.io script to listen for live users -->
 <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
 
 <style>
@@ -30,7 +26,7 @@
   --primary: #ff6b6b;
   --primary-dark: #ee5a52;
   --casual: #f38181;
-  --chess: #9b59b6; /* New color for the chess feature */
+  --chess: #9b59b6; /* Keeping the purple theme for games */
   --chess-dark: #8e44ad;
   --dark: #1a1a2e;
   --dark2: #16213e;
@@ -137,7 +133,7 @@ nav {
 }
 
 .live-badge.badge-chess {
-  background: #f1c40f; /* distinct color for gaming badge */
+  background: #f1c40f; 
   box-shadow: 0 4px 10px rgba(241, 196, 15, 0.4);
 }
 
@@ -354,8 +350,8 @@ footer a {
           <span class="live-badge" id="navLiveBadge" style="top: -8px; right: -5px; font-size: 0.7rem;">🟢 0</span>
         </div>
         <div class="btn-wrapper">
-          <a href="chess.html" class="nav-btn btn-chess">Play & Talk ♟️</a>
-          <span class="live-badge badge-chess" id="navChessBadge" style="top: -8px; right: -5px; font-size: 0.7rem;">⚔️ 0</span>
+          <a href="chess.html" class="nav-btn btn-chess">Play Games 🎮</a>
+          <span class="live-badge badge-chess" id="navChessBadge" style="top: -8px; right: -5px; font-size: 0.7rem;">🎮 0</span>
         </div>
       </div>
     </nav>
@@ -366,7 +362,7 @@ footer a {
   <section class="hero">
     <div class="container">
       <h1>Chat with <span class="highlight">Strangers</span><br>Anywhere, Anytime</h1>
-      <p>Join CupLab and connect with random people worldwide. Share a virtual cup of coffee, or challenge a stranger to a game of Chess face-to-face!</p>
+      <p>Join CupLab and connect with random people worldwide. Share a virtual cup of coffee, or hop into the Game Lobby to play interactive games face-to-face!</p>
       
       <div class="hero-actions">
         <div class="btn-wrapper">
@@ -374,8 +370,8 @@ footer a {
           <span class="live-badge" id="heroLiveBadge">🟢 0 Online</span>
         </div>
         <div class="btn-wrapper">
-          <a href="chess.html" class="hero-btn btn-chess">Play Chess & Talk ♟️</a>
-          <span class="live-badge badge-chess" id="heroChessBadge">⚔️ 0 Playing</span>
+          <a href="chess.html" class="hero-btn btn-chess">Game Lobby & Talk 🎮</a>
+          <span class="live-badge badge-chess" id="heroChessBadge">🎮 0 Playing</span>
         </div>
       </div>
 
@@ -399,11 +395,11 @@ footer a {
 
         <a href="chess.html" class="cat-card chess">
           <div class="btn-wrapper" style="position: absolute; top: -10px; right: 10px;">
-             <span class="live-badge badge-chess" id="cardChessBadge">⚔️ 0 Playing</span>
+             <span class="live-badge badge-chess" id="cardChessBadge">🎮 0 Playing</span>
           </div>
-          <div class="cat-icon">♟️</div>
-          <h3>Play & Talk</h3>
-          <p>Play a live game of Chess while video & audio chatting!</p>
+          <div class="cat-icon">🎮</div>
+          <h3>Game Lobby</h3>
+          <p>Match with a stranger, pick a game like Chess, and play while on video chat!</p>
         </a>
       </div>
     </div>
@@ -424,9 +420,9 @@ footer a {
         </div>
         
         <div class="feat-item">
-          <div class="feat-icon">♟️</div>
+          <div class="feat-icon">🎮</div>
           <h3>Interactive Games</h3>
-          <p>Break the ice easily by playing a beautifully designed game of Chess.</p>
+          <p>Break the ice easily by playing live games with your match.</p>
         </div>
         
         <div class="feat-item">
@@ -466,7 +462,7 @@ footer a {
     if(heroBadge) heroBadge.innerText = `🟢 ${displayCount} Online`;
   });
 
-  // Specific Chess users
+  // Specific Game Lobby users
   socket.on('live_chess_users', (count) => {
     // If no one is playing, it's fine to show 0 for a specific game mode
     let displayCount = count > 0 ? count : 0; 
@@ -475,9 +471,9 @@ footer a {
     const heroChessBadge = document.getElementById('heroChessBadge');
     const cardChessBadge = document.getElementById('cardChessBadge');
 
-    if(navChessBadge) navChessBadge.innerText = `⚔️ ${displayCount}`;
-    if(heroChessBadge) heroChessBadge.innerText = `⚔️ ${displayCount} Playing`;
-    if(cardChessBadge) cardChessBadge.innerText = `⚔️ ${displayCount} Playing`;
+    if(navChessBadge) navChessBadge.innerText = `🎮 ${displayCount}`;
+    if(heroChessBadge) heroChessBadge.innerText = `🎮 ${displayCount} Playing`;
+    if(cardChessBadge) cardChessBadge.innerText = `🎮 ${displayCount} Playing`;
   });
 </script>
 
