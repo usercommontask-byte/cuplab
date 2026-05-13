@@ -26,13 +26,13 @@
   --gray: #a8a8a8;
   --green: #26de81;
   --red: #e74c3c;
+  --tennis: #2ecc71;
 }
 
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   background: var(--dark);
   color: var(--white);
-  /* Strict Native App Lockout */
   height: 100dvh;
   min-height: 100vh;
   overflow: hidden; 
@@ -47,7 +47,7 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  flex-shrink: 0; /* Never shrink header */
+  flex-shrink: 0; 
 }
 
 .logo {
@@ -110,7 +110,7 @@ body {
 .game-screen {
   display: none;
   flex: 1;
-  min-height: 0; /* Crucial for internal flex scrolling/sizing */
+  min-height: 0; 
   padding: 0.5rem;
   gap: 0.5rem;
   max-width: 1400px;
@@ -180,18 +180,18 @@ video {
 /* CHESS / LOBBY SECTION */
 .chess-section {
   flex: 1;
-  min-height: 0; /* Allows content to squeeze */
+  min-height: 0; 
   display: flex;
   flex-direction: column;
   background: var(--dark2);
   padding: 0.8rem;
   border-radius: 15px;
   border: 2px solid var(--dark3);
-  overflow: hidden; /* Lock content inside */
+  overflow: hidden; 
 }
 
-/* GAME WRAPPERS (Shared Flex Layout) */
-#chessGameWrapper, #tttGameWrapper {
+/* GAME WRAPPERS */
+#chessGameWrapper, #tttGameWrapper, #pongGameWrapper {
   width: 100%;
   height: 100%;
   flex-direction: column;
@@ -212,7 +212,7 @@ video {
 
 .lobby-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
   gap: 1rem;
   width: 100%;
   max-width: 500px;
@@ -235,8 +235,8 @@ video {
 }
 
 .card-icon { font-size: 2.5rem; margin-bottom: 0.5rem; }
-.game-card h3 { font-size: 1.1rem; margin-bottom: 0.3rem; color: var(--chess); }
-.game-card p { font-size: 0.8rem; color: var(--gray); }
+.game-card h3 { font-size: 1rem; margin-bottom: 0.3rem; color: var(--chess); }
+.game-card p { font-size: 0.75rem; color: var(--gray); }
 
 /* ==================================
    STATUS BAR
@@ -252,7 +252,7 @@ video {
   flex-shrink: 0;
 }
 
-#gameStatus, #tttStatusText {
+#gameStatus, #tttStatusText, #pongStatusText {
   font-size: 1rem;
   font-weight: 800;
   color: var(--chess);
@@ -263,7 +263,6 @@ video {
 =================================== */
 #board {
   width: 100%;
-  /* Force board to scale down to fit vertical height! */
   max-width: min(100%, 42vh); 
   margin: auto;
   border-radius: 6px;
@@ -303,36 +302,35 @@ video {
 .ttt-cell.x { color: var(--primary); }
 .ttt-cell.o { color: var(--green); }
 
+/* TENNIS / PONG UI */
+#pongCanvas {
+  width: 100%;
+  max-width: min(100%, 55vh);
+  aspect-ratio: 3/2;
+  background: #111;
+  border: 2px solid var(--dark3);
+  border-radius: 8px;
+  margin: auto;
+  display: block;
+  touch-action: none; /* Prevent scrolling when dragging paddle */
+}
+
 /* ==================================
    DESKTOP VS MOBILE MEDIA QUERIES
 =================================== */
 @media (min-width: 800px) {
   .game-screen { flex-direction: row; padding: 1.5rem; gap: 1.5rem; }
   .video-section { flex: 0 0 320px; }
-  #board, .ttt-board { max-width: min(100%, 60vh); } /* Taller boards for desktop */
+  #board, .ttt-board { max-width: min(100%, 60vh); } 
+  #pongCanvas { max-width: min(100%, 80vh); }
 }
 
 @media (max-width: 799px) {
   .game-screen { flex-direction: column; overflow: hidden; }
-  
-  /* Lock Videos to Top Row */
-  .video-section { 
-    flex-direction: row; 
-    flex-wrap: wrap; 
-    flex-shrink: 0; 
-  }
-  .video-box { 
-    width: calc(50% - 0.25rem); /* Two boxes side by side */
-  }
-  .controls { 
-    width: 100%; 
-    flex-shrink: 0; 
-  }
-  .ctrl-btn { 
-    flex: 1; 
-    padding: 0.6rem 0; 
-    font-size: 0.85rem; 
-  }
+  .video-section { flex-direction: row; flex-wrap: wrap; flex-shrink: 0; }
+  .video-box { width: calc(50% - 0.25rem); }
+  .controls { width: 100%; flex-shrink: 0; }
+  .ctrl-btn { flex: 1; padding: 0.6rem 0; font-size: 0.85rem; }
 }
 </style>
 </head>
@@ -380,12 +378,17 @@ video {
         <div class="game-card" onclick="startGame('chess')">
           <div class="card-icon">♟️</div>
           <h3>Chess</h3>
-          <p>Classic strategy.</p>
+          <p>Classic strategy</p>
         </div>
         <div class="game-card" onclick="startGame('ttt')">
           <div class="card-icon">❌</div>
           <h3>Tic-Tac-Toe</h3>
-          <p>Quick and casual.</p>
+          <p>Quick & casual</p>
+        </div>
+        <div class="game-card" onclick="startGame('pong')">
+          <div class="card-icon">🎾</div>
+          <h3>Tennis</h3>
+          <p>Fast-paced reflex</p>
         </div>
       </div>
     </div>
@@ -395,9 +398,7 @@ video {
         <div id="gameStatus">White to move</div>
         <div id="playerRole">Role: <strong>...</strong></div>
       </div>
-      
       <div id="board"></div>
-      
       <button class="ctrl-btn danger" onclick="exitToLobby()" style="width: 100%; flex-shrink: 0; margin-top: 0.5rem;">🚪 Return to Lobby</button>
     </div>
 
@@ -406,13 +407,22 @@ video {
         <div id="tttStatusText">X's Turn</div>
         <div id="tttRole">Role: <strong>...</strong></div>
       </div>
-
       <div class="ttt-board" id="tttBoard"></div>
-
       <div style="display: flex; gap: 0.5rem; width: 100%; flex-shrink: 0; margin-top: 0.5rem;">
         <button class="ctrl-btn" onclick="resetTtt()" style="flex: 1; background: var(--dark3); color: white;">🔄 Play Again</button>
         <button class="ctrl-btn danger" onclick="exitToLobby()" style="flex: 1;">🚪 Lobby</button>
       </div>
+    </div>
+
+    <div id="pongGameWrapper" style="display: none;">
+      <div class="status-bar">
+        <div id="pongStatusText" style="color: var(--tennis)">Score: 0 - 0</div>
+        <div id="pongRole">Slide finger to move</div>
+      </div>
+      
+      <canvas id="pongCanvas" width="600" height="400"></canvas>
+      
+      <button class="ctrl-btn danger" onclick="exitToLobby()" style="width: 100%; flex-shrink: 0; margin-top: 0.5rem;">🚪 Return to Lobby</button>
     </div>
 
   </div>
@@ -436,19 +446,25 @@ let myTttSymbol = 'X';
 let currentTttTurn = 'X';
 let tttGameOver = false;
 
+// Tennis (Pong) Variables
+let pongAnimReq = null;
+let isPongHost = false; // 'white' plays host (left paddle & ball physics)
+let p1y = 150, p2y = 150; // Paddle Y positions
+let bx = 300, by = 200, bvx = 5, bvy = 3; // Ball position and velocity
+let score1 = 0, score2 = 0;
+const PADDLE_H = 80, PADDLE_W = 10, BALL_R = 8;
+const PONG_W = 600, PONG_H = 400;
+
 // WebRTC Variables
 let localStream;
 let peerConnection;
-const servers = {
-  iceServers: [
-    { urls: ['stun:stun1.l.google.com:19302', 'stun:stun2.l.google.com:19302'] }
-  ]
-};
+const servers = { iceServers: [{ urls: ['stun:stun1.l.google.com:19302', 'stun:stun2.l.google.com:19302'] }] };
 
 // --- INITIALIZATION ---
 window.onload = async function() {
   await setupLocalMedia();
   initSocket();
+  setupPongControls();
 };
 
 // --- CAMERA / MIC SETUP ---
@@ -472,10 +488,8 @@ function initSocket() {
 
   socket.on('matched', async (data) => {
     myColor = data.color;
-    
     document.getElementById('matchingScreen').style.display = 'none';
     document.getElementById('gameScreen').style.display = 'flex';
-    
     enterLobbyUI();
     setupWebRTC(data.role);
   });
@@ -485,7 +499,6 @@ function initSocket() {
     nextOpponent();
   });
 
-  // --- LOBBY SIGNALING ---
   socket.on('game_selected', (gameName) => {
     enterGameUI(gameName);
   });
@@ -494,7 +507,6 @@ function initSocket() {
     enterLobbyUI();
   });
 
-  // --- WEBRTC SIGNALING HANDLERS ---
   socket.on('webrtc_offer', async (offer) => {
     if(!peerConnection) return;
     await peerConnection.setRemoteDescription(new RTCSessionDescription(offer));
@@ -515,13 +527,25 @@ function initSocket() {
     } catch (e) { console.error('Error adding received ice candidate', e); }
   });
 
-  // --- GAME MOVES (HIJACKED FOR BOTH CHESS AND TTT) ---
+  // --- GAME MOVES MULTIPLEXER ---
   socket.on('chess_move', (data) => {
     if (data && data.type === 'ttt') {
         processTttMove(data.index, data.symbol);
     } else if (data && data.type === 'ttt_reset') {
         initTttBoard();
+    } else if (data && data.type === 'pong_paddle') {
+        // Update opponent's paddle
+        if (isPongHost) p2y = data.y;
+        else p1y = data.y;
+    } else if (data && data.type === 'pong_state') {
+        // Guest receives ball physics and score from Host
+        if (!isPongHost) {
+            bx = data.bx; by = data.by;
+            score1 = data.s1; score2 = data.s2;
+            updatePongScoreUI();
+        }
     } else {
+        // Standard Chess move
         game.move(data);
         board.position(game.fen());
         updateStatus();
@@ -544,10 +568,12 @@ function exitToLobby() {
 function enterLobbyUI() {
   document.getElementById('chessGameWrapper').style.display = 'none';
   document.getElementById('tttGameWrapper').style.display = 'none';
+  document.getElementById('pongGameWrapper').style.display = 'none';
   document.getElementById('lobbyMenu').style.display = 'block';
   
   if (board) { board.destroy(); board = null; }
   selectedSquare = null;
+  if (pongAnimReq) cancelAnimationFrame(pongAnimReq);
 }
 
 function enterGameUI(gameName) {
@@ -558,33 +584,24 @@ function enterGameUI(gameName) {
     document.getElementById('playerRole').innerHTML = `<strong style="color:${myColor === 'white' ? '#fff' : '#333'}">${myColor.toUpperCase()}</strong>`;
     initChessBoard();
     updateStatus();
-    // Force chessboard to recalculate size now that it's visible
     setTimeout(() => { if(board) board.resize(); }, 100); 
   } else if (gameName === 'ttt') {
     document.getElementById('tttGameWrapper').style.display = 'flex';
     myTttSymbol = (myColor === 'white') ? 'X' : 'O'; 
     document.getElementById('tttRole').innerHTML = `<strong style="color:${myTttSymbol === 'X' ? 'var(--primary)' : 'var(--green)'}">${myTttSymbol}</strong>`;
     initTttBoard();
+  } else if (gameName === 'pong') {
+    document.getElementById('pongGameWrapper').style.display = 'flex';
+    initPong();
   }
 }
 
 // --- WEBRTC PEER CONNECTION ---
 function setupWebRTC(role) {
   peerConnection = new RTCPeerConnection(servers);
-
-  localStream.getTracks().forEach(track => {
-    peerConnection.addTrack(track, localStream);
-  });
-
-  peerConnection.ontrack = (event) => {
-    document.getElementById('remoteVideo').srcObject = event.streams[0];
-  };
-
-  peerConnection.onicecandidate = (event) => {
-    if (event.candidate) {
-      socket.emit('webrtc_ice_candidate', event.candidate);
-    }
-  };
+  localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
+  peerConnection.ontrack = (event) => { document.getElementById('remoteVideo').srcObject = event.streams[0]; };
+  peerConnection.onicecandidate = (event) => { if (event.candidate) socket.emit('webrtc_ice_candidate', event.candidate); };
 
   if (role === 'initiator') {
     peerConnection.createOffer()
@@ -596,8 +613,136 @@ function setupWebRTC(role) {
 }
 
 // ==========================================
+// TENNIS (PONG) LOGIC
+// ==========================================
+function initPong() {
+  isPongHost = (myColor === 'white'); // White handles ball logic
+  p1y = 150; p2y = 150;
+  bx = 300; by = 200;
+  bvx = 5; bvy = 3;
+  score1 = 0; score2 = 0;
+  updatePongScoreUI();
+  
+  if (pongAnimReq) cancelAnimationFrame(pongAnimReq);
+  pongLoop();
+}
+
+function updatePongScoreUI() {
+  document.getElementById('pongStatusText').innerText = `Score: ${score1} - ${score2}`;
+}
+
+// Sync touch and mouse movement to paddle
+function setupPongControls() {
+  const canvas = document.getElementById('pongCanvas');
+  
+  function updateMyPaddle(clientY) {
+    const rect = canvas.getBoundingClientRect();
+    const scaleY = canvas.height / rect.height;
+    let y = (clientY - rect.top) * scaleY - PADDLE_H / 2;
+    
+    // Clamp paddle to screen
+    if (y < 0) y = 0;
+    if (y > PONG_H - PADDLE_H) y = PONG_H - PADDLE_H;
+
+    if (isPongHost) p1y = y;
+    else p2y = y;
+
+    // Send to opponent
+    socket.emit('chess_move', { type: 'pong_paddle', y: y });
+  }
+
+  canvas.addEventListener('mousemove', (e) => updateMyPaddle(e.clientY));
+  canvas.addEventListener('touchmove', (e) => {
+    e.preventDefault(); // Stop scrolling
+    updateMyPaddle(e.touches[0].clientY);
+  }, { passive: false });
+}
+
+function pongLoop() {
+  updatePongPhysics();
+  drawPong();
+  pongAnimReq = requestAnimationFrame(pongLoop);
+}
+
+function updatePongPhysics() {
+  if (!isPongHost) return; // Only host computes ball physics
+
+  bx += bvx;
+  by += bvy;
+
+  // Top and Bottom walls
+  if (by < 0 || by + BALL_R > PONG_H) {
+    bvy = -bvy;
+  }
+
+  // Left Paddle (Host)
+  if (bx < PADDLE_W) {
+    if (by > p1y && by < p1y + PADDLE_H) {
+      bvx = -bvx;
+      let deltaY = by - (p1y + PADDLE_H/2);
+      bvy = deltaY * 0.15;
+    } else if (bx < 0) {
+      score2++;
+      resetPongBall();
+    }
+  }
+
+  // Right Paddle (Guest)
+  if (bx > PONG_W - PADDLE_W - BALL_R) {
+    if (by > p2y && by < p2y + PADDLE_H) {
+      bvx = -bvx;
+      let deltaY = by - (p2y + PADDLE_H/2);
+      bvy = deltaY * 0.15;
+    } else if (bx > PONG_W) {
+      score1++;
+      resetPongBall();
+    }
+  }
+
+  // Send state to Guest
+  socket.emit('chess_move', { type: 'pong_state', bx: bx, by: by, s1: score1, s2: score2 });
+}
+
+function resetPongBall() {
+  bx = PONG_W / 2;
+  by = PONG_H / 2;
+  bvx = -bvx; // Serve to the person who just scored
+  bvy = 3;
+  updatePongScoreUI();
+}
+
+function drawPong() {
+  const canvas = document.getElementById('pongCanvas');
+  const ctx = canvas.getContext('2d');
+
+  // Clear background
+  ctx.fillStyle = '#111';
+  ctx.fillRect(0, 0, PONG_W, PONG_H);
+
+  // Draw net
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
+  for(let i = 0; i <= PONG_H; i+=20) {
+    ctx.fillRect(PONG_W/2 - 1, i, 2, 10);
+  }
+
+  // Draw paddles
+  ctx.fillStyle = (isPongHost) ? 'var(--primary)' : 'white';
+  ctx.fillRect(0, p1y, PADDLE_W, PADDLE_H);
+  
+  ctx.fillStyle = (!isPongHost) ? 'var(--primary)' : 'white';
+  ctx.fillRect(PONG_W - PADDLE_W, p2y, PADDLE_W, PADDLE_H);
+
+  // Draw ball
+  ctx.fillStyle = 'var(--tennis)';
+  ctx.beginPath();
+  ctx.arc(bx, by, BALL_R, 0, Math.PI*2);
+  ctx.fill();
+}
+
+// ==========================================
 // TIC-TAC-TOE LOGIC
 // ==========================================
+// ... (Tic-Tac-Toe logic remains exactly the same, omitted for brevity in explanation but included in code)
 function initTttBoard() {
   tttBoardState = ['', '', '', '', '', '', '', '', ''];
   currentTttTurn = 'X';
@@ -633,7 +778,6 @@ function processTttMove(index, symbol) {
 
 function checkTttWin() {
   const winPatterns = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
-
   for (let pattern of winPatterns) {
     const [a, b, c] = pattern;
     if (tttBoardState[a] && tttBoardState[a] === tttBoardState[b] && tttBoardState[a] === tttBoardState[c]) {
@@ -642,7 +786,6 @@ function checkTttWin() {
       return;
     }
   }
-
   if (!tttBoardState.includes('')) {
     document.getElementById('tttStatusText').innerText = "It's a Draw!";
     tttGameOver = true;
@@ -653,11 +796,8 @@ function checkTttWin() {
 
 function updateTttStatus() {
   if (tttGameOver) return;
-  if (currentTttTurn === myTttSymbol) {
-    document.getElementById('tttStatusText').innerText = "Your Turn!";
-  } else {
-    document.getElementById('tttStatusText').innerText = "Waiting...";
-  }
+  if (currentTttTurn === myTttSymbol) document.getElementById('tttStatusText').innerText = "Your Turn!";
+  else document.getElementById('tttStatusText').innerText = "Waiting...";
 }
 
 function resetTtt() {
@@ -671,24 +811,17 @@ function resetTtt() {
 function initChessBoard() {
   game.reset();
   selectedSquare = null;
-  const config = {
-    draggable: false, 
-    position: 'start',
-    orientation: myColor,
-    pieceTheme: 'https://chessboardjs.com/img/chesspieces/wikipedia/{piece}.png'
-  };
+  const config = { draggable: false, position: 'start', orientation: myColor, pieceTheme: 'https://chessboardjs.com/img/chesspieces/wikipedia/{piece}.png' };
   board = Chessboard('board', config);
 }
 
 $(document).on('click', '#board .square-55d63', function() {
   if (game.game_over() || $('#chessGameWrapper').css('display') === 'none') return;
-  
   let square = $(this).attr('data-square');
   let turnColor = game.turn() === 'w' ? 'white' : 'black';
   if (turnColor !== myColor) return;
   
   let piece = game.get(square);
-
   if (selectedSquare === null) {
     if (piece && piece.color === game.turn()) {
       selectedSquare = square;
@@ -718,20 +851,14 @@ function highlightSquare(square) {
   $('#board .square-55d63').removeClass('highlight-square');
   $('#board .square-' + square).addClass('highlight-square');
 }
-
-function removeHighlights() {
-  $('#board .square-55d63').removeClass('highlight-square');
-}
+function removeHighlights() { $('#board .square-55d63').removeClass('highlight-square'); }
 
 function updateStatus () {
   let statusHTML = '';
   let moveColor = game.turn() === 'w' ? 'White' : 'Black';
-
-  if (game.in_checkmate()) {
-    statusHTML = `Game over, ${moveColor} checkmate.`;
-  } else if (game.in_draw()) {
-    statusHTML = 'Game drawn';
-  } else {
+  if (game.in_checkmate()) statusHTML = `Game over, ${moveColor} checkmate.`;
+  else if (game.in_draw()) statusHTML = 'Game drawn';
+  else {
     statusHTML = `${moveColor} to move`;
     if (game.in_check()) statusHTML += ', in check';
   }
@@ -742,54 +869,29 @@ function updateStatus () {
 function toggleAudio() {
   const audioTrack = localStream.getAudioTracks()[0];
   const btn = document.getElementById('micBtn');
-  if (audioTrack.enabled) {
-    audioTrack.enabled = false;
-    btn.innerText = '🔇 Mic Off';
-    btn.classList.remove('active');
-  } else {
-    audioTrack.enabled = true;
-    btn.innerText = '🎙️ Mic On';
-    btn.classList.add('active');
-  }
+  if (audioTrack.enabled) { audioTrack.enabled = false; btn.innerText = '🔇 Mic Off'; btn.classList.remove('active'); } 
+  else { audioTrack.enabled = true; btn.innerText = '🎙️ Mic On'; btn.classList.add('active'); }
 }
 
 function toggleVideo() {
   const videoTrack = localStream.getVideoTracks()[0];
   const btn = document.getElementById('camBtn');
-  if (videoTrack.enabled) {
-    videoTrack.enabled = false;
-    btn.innerText = '📷 Cam Off';
-    btn.classList.remove('active');
-  } else {
-    videoTrack.enabled = true;
-    btn.innerText = '📹 Cam On';
-    btn.classList.add('active');
-  }
+  if (videoTrack.enabled) { videoTrack.enabled = false; btn.innerText = '📷 Cam Off'; btn.classList.remove('active'); } 
+  else { videoTrack.enabled = true; btn.innerText = '📹 Cam On'; btn.classList.add('active'); }
 }
 
 function nextOpponent() {
   socket.emit('leave_chat');
-  if (peerConnection) {
-    peerConnection.close();
-    peerConnection = null;
-  }
+  if (peerConnection) { peerConnection.close(); peerConnection = null; }
   document.getElementById('remoteVideo').srcObject = null;
-  
   document.getElementById('gameScreen').style.display = 'none';
   document.getElementById('matchingScreen').style.display = 'flex';
-  
   enterLobbyUI();
-  
-  setTimeout(() => {
-    socket.emit('find_partner', 'chess');
-  }, 1000);
+  setTimeout(() => { socket.emit('find_partner', 'chess'); }, 1000);
 }
 
-// Window resize listener to ensure chessboard fits correctly
 window.addEventListener('resize', () => {
-    if(board && document.getElementById('chessGameWrapper').style.display !== 'none') {
-        board.resize();
-    }
+    if(board && document.getElementById('chessGameWrapper').style.display !== 'none') board.resize();
 });
 </script>
 
