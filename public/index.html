@@ -3,22 +3,17 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <title>CupLab - Chat with Strangers & Play Games Online Free | Anonymous Random Chat 2025</title>
 <meta name="description" content="Chat with strangers online free at CupLab! Meet random people instantly, play games like Chess, and video chat. 100% anonymous, safe, instant matching.">
 <meta name="keywords" content="chat with strangers, anonymous chat, random chat, talk to strangers, free chat rooms, play games online, video chat games, cuplab">
 <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large">
 <meta name="author" content="CupLab">
-
 <meta property="og:title" content="CupLab - Free Anonymous Chat & Live Games">
 <meta property="og:description" content="Meet random strangers instantly! 100% free and anonymous random chat and interactive video games.">
 <meta property="og:url" content="https://cuplab.com/">
 <meta property="og:type" content="website">
-
 <link rel="canonical" href="https://cuplab.com/">
-
 <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
-
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -26,7 +21,7 @@
   --primary: #ff6b6b;
   --primary-dark: #ee5a52;
   --casual: #f38181;
-  --chess: #9b59b6; /* Keeping the purple theme for games */
+  --chess: #9b59b6;
   --chess-dark: #8e44ad;
   --dark: #1a1a2e;
   --dark2: #16213e;
@@ -43,12 +38,13 @@ body {
 }
 
 header {
-  background: rgba(26, 26, 46, 0.95);
+  background: rgba(26, 26, 46, 0.97);
   border-bottom: 2px solid var(--primary);
-  padding: 1.2rem 0;
+  padding: 1rem 0;
   position: sticky;
   top: 0;
   z-index: 1000;
+  backdrop-filter: blur(10px);
 }
 
 .container {
@@ -66,24 +62,20 @@ nav {
 }
 
 .logo {
-  font-size: 2.2rem;
+  font-size: 2rem;
   font-weight: 800;
   color: var(--primary);
   text-decoration: none;
 }
-
-.logo::before {
-  content: '☕ ';
-}
+.logo::before { content: '☕ '; }
 
 .nav-actions {
   display: flex;
-  gap: 1.5rem;
+  gap: 1rem;
   align-items: center;
   flex-wrap: wrap;
 }
 
-/* Button Wrapper for positioning the badge */
 .btn-wrapper {
   position: relative;
   display: inline-block;
@@ -92,82 +84,69 @@ nav {
 .nav-btn {
   background: var(--primary);
   color: var(--white);
-  padding: 0.8rem 1.5rem;
+  padding: 0.75rem 1.4rem;
   border-radius: 25px;
   text-decoration: none;
   font-weight: 700;
   transition: all 0.3s;
   display: inline-block;
-  font-size: 0.95rem;
+  font-size: 0.9rem;
 }
+.nav-btn:hover { background: var(--primary-dark); transform: translateY(-2px); }
+.nav-btn.btn-chess { background: var(--chess); }
+.nav-btn.btn-chess:hover { background: var(--chess-dark); }
 
-.nav-btn:hover {
-  background: var(--primary-dark);
-  transform: translateY(-2px);
-}
-
-.nav-btn.btn-chess {
-  background: var(--chess);
-}
-
-.nav-btn.btn-chess:hover {
-  background: var(--chess-dark);
-}
-
-/* Live Users Badge Styles */
 .live-badge {
   position: absolute;
   top: -10px;
-  right: -15px;
+  right: -12px;
   background: var(--green);
-  color: var(--dark);
-  font-size: 0.8rem;
+  color: #0f3460;
+  font-size: 0.72rem;
   font-weight: 800;
-  padding: 0.2rem 0.6rem;
+  padding: 0.18rem 0.55rem;
   border-radius: 20px;
-  box-shadow: 0 4px 10px rgba(38, 222, 129, 0.4);
+  box-shadow: 0 3px 8px rgba(38,222,129,0.35);
   white-space: nowrap;
   animation: pulse-soft 2s infinite;
   pointer-events: none;
   z-index: 2;
 }
-
 .live-badge.badge-chess {
-  background: #f1c40f; 
-  box-shadow: 0 4px 10px rgba(241, 196, 15, 0.4);
+  background: #f1c40f;
+  box-shadow: 0 3px 8px rgba(241,196,15,0.35);
 }
 
 @keyframes pulse-soft {
   0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.05); }
+  50% { transform: scale(1.06); }
 }
 
+/* HERO */
 .hero {
   padding: 5rem 0 4rem;
   text-align: center;
 }
 
 .hero h1 {
-  font-size: clamp(2.5rem, 6vw, 4.5rem);
+  font-size: clamp(2.2rem, 6vw, 4.2rem);
   font-weight: 900;
-  line-height: 1.1;
+  line-height: 1.15;
   margin-bottom: 1.5rem;
 }
 
-.highlight {
-  color: var(--primary);
-}
+.highlight { color: var(--primary); }
 
 .hero p {
-  font-size: 1.25rem;
+  font-size: 1.2rem;
   color: var(--gray);
-  max-width: 700px;
+  max-width: 680px;
   margin: 0 auto 2.5rem;
 }
 
 .hero-actions {
   display: flex;
-  gap: 2rem;
+  gap: 1.5rem;
   justify-content: center;
   flex-wrap: wrap;
   margin-top: 1rem;
@@ -176,40 +155,35 @@ nav {
 .hero-btn {
   background: var(--primary);
   color: var(--white);
-  padding: 1.3rem 2.5rem;
+  padding: 1.1rem 2.2rem;
   border-radius: 30px;
   text-decoration: none;
   font-weight: 800;
-  font-size: 1.15rem;
+  font-size: 1.05rem;
   display: inline-block;
   transition: all 0.3s;
-  box-shadow: 0 10px 30px rgba(255, 107, 107, 0.4);
+  box-shadow: 0 8px 25px rgba(255,107,107,0.35);
 }
-
-.hero-btn:hover {
-  transform: translateY(-5px);
-}
-
+.hero-btn:hover { transform: translateY(-5px); box-shadow: 0 12px 30px rgba(255,107,107,0.45); }
 .hero-btn.btn-chess {
   background: var(--chess);
-  box-shadow: 0 10px 30px rgba(155, 89, 182, 0.4);
+  box-shadow: 0 8px 25px rgba(155,89,182,0.35);
 }
-
-.hero-btn.btn-chess:hover {
-  background: var(--chess-dark);
-}
+.hero-btn.btn-chess:hover { background: var(--chess-dark); }
 
 .age-notice {
-  background: rgba(255, 107, 107, 0.15);
+  background: rgba(255,107,107,0.12);
   border: 2px solid var(--primary);
-  border-radius: 15px;
-  padding: 1.2rem;
-  margin: 3.5rem auto 0;
-  max-width: 550px;
+  border-radius: 12px;
+  padding: 1rem 1.5rem;
+  margin: 3rem auto 0;
+  max-width: 500px;
   font-weight: 700;
   color: var(--primary);
+  font-size: 0.95rem;
 }
 
+/* CATEGORIES */
 .categories {
   padding: 5rem 0;
   background: var(--dark2);
@@ -217,19 +191,16 @@ nav {
 
 .section-title {
   text-align: center;
-  margin-bottom: 3.5rem;
+  margin-bottom: 3rem;
 }
 
 .section-title h2 {
-  font-size: clamp(2rem, 4vw, 3.5rem);
+  font-size: clamp(1.8rem, 4vw, 3rem);
   font-weight: 800;
-  margin-bottom: 1rem;
+  margin-bottom: 0.8rem;
 }
 
-.section-title p {
-  color: var(--gray);
-  font-size: 1.2rem;
-}
+.section-title p { color: var(--gray); font-size: 1.1rem; }
 
 .cat-grid {
   display: flex;
@@ -242,99 +213,70 @@ nav {
   background: var(--dark);
   border: 3px solid transparent;
   border-radius: 20px;
-  padding: 3rem 2.5rem;
+  padding: 2.5rem 2rem;
   text-align: center;
   transition: all 0.3s;
   cursor: pointer;
   text-decoration: none;
   color: var(--white);
-  max-width: 350px;
+  max-width: 320px;
   width: 100%;
   position: relative;
 }
-
 .cat-card:hover {
   border-color: var(--cat-color);
-  transform: translateY(-12px);
-  box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+  transform: translateY(-10px);
+  box-shadow: 0 18px 45px rgba(0,0,0,0.45);
 }
-
 .cat-icon {
-  font-size: 4rem;
-  margin-bottom: 1.2rem;
+  font-size: 3.5rem;
+  margin-bottom: 1rem;
   transition: transform 0.3s;
 }
-
-.cat-card:hover .cat-icon {
-  transform: scale(1.2) rotate(5deg);
-}
-
-.cat-card h3 {
-  font-size: 1.6rem;
-  font-weight: 800;
-  margin-bottom: 0.8rem;
-  color: var(--cat-color);
-}
-
-.cat-card p {
-  color: var(--gray);
-  line-height: 1.7;
-}
-
+.cat-card:hover .cat-icon { transform: scale(1.2) rotate(5deg); }
+.cat-card h3 { font-size: 1.5rem; font-weight: 800; margin-bottom: 0.7rem; color: var(--cat-color); }
+.cat-card p { color: var(--gray); line-height: 1.7; }
 .cat-card.casual { --cat-color: var(--casual); }
 .cat-card.chess { --cat-color: var(--chess); }
 
-.features {
-  padding: 5rem 0;
-}
+/* FEATURES */
+.features { padding: 5rem 0; }
 
 .feat-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 2.5rem;
-  margin-top: 3.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 2rem;
+  margin-top: 3rem;
 }
 
 .feat-item {
   text-align: center;
-  padding: 2rem;
+  padding: 2rem 1.5rem;
   background: var(--dark2);
   border-radius: 15px;
   transition: transform 0.3s;
 }
-
-.feat-item:hover {
-  transform: translateY(-8px);
-}
-
-.feat-icon {
-  font-size: 3.5rem;
-  margin-bottom: 1.2rem;
-}
-
-.feat-item h3 {
-  font-size: 1.4rem;
-  font-weight: 800;
-  margin-bottom: 0.8rem;
-}
-
-.feat-item p {
-  color: var(--gray);
-  line-height: 1.8;
-}
+.feat-item:hover { transform: translateY(-6px); }
+.feat-icon { font-size: 3rem; margin-bottom: 1rem; }
+.feat-item h3 { font-size: 1.3rem; font-weight: 800; margin-bottom: 0.7rem; }
+.feat-item p { color: var(--gray); line-height: 1.8; font-size: 0.95rem; }
 
 footer {
   background: var(--dark2);
   border-top: 2px solid var(--primary);
-  padding: 3rem 0;
+  padding: 2.5rem 0;
   text-align: center;
   color: var(--gray);
+  font-size: 0.9rem;
 }
+footer a { color: var(--primary); text-decoration: none; margin: 0 0.8rem; }
+footer p + p { margin-top: 0.6rem; }
 
-footer a {
-  color: var(--primary);
-  text-decoration: none;
-  margin: 0 1rem;
+@media (max-width: 600px) {
+  .hero { padding: 3rem 0 2.5rem; }
+  .hero-actions { gap: 1rem; }
+  .hero-btn { padding: 0.9rem 1.6rem; font-size: 0.95rem; }
+  nav { justify-content: center; }
 }
 </style>
 </head>
@@ -346,12 +288,12 @@ footer a {
       <a href="index.html" class="logo">CupLab</a>
       <div class="nav-actions">
         <div class="btn-wrapper">
-          <a href="chat.html?cat=casual" class="nav-btn">Start Chatting</a>
-          <span class="live-badge" id="navLiveBadge" style="top: -8px; right: -5px; font-size: 0.7rem;">🟢 0</span>
+          <a href="chat.html" class="nav-btn">Start Chatting</a>
+          <span class="live-badge" id="navLiveBadge">🟢 0</span>
         </div>
         <div class="btn-wrapper">
           <a href="chess.html" class="nav-btn btn-chess">Play Games 🎮</a>
-          <span class="live-badge badge-chess" id="navChessBadge" style="top: -8px; right: -5px; font-size: 0.7rem;">🎮 0</span>
+          <span class="live-badge badge-chess" id="navChessBadge">🎮 0</span>
         </div>
       </div>
     </nav>
@@ -363,10 +305,10 @@ footer a {
     <div class="container">
       <h1>Chat with <span class="highlight">Strangers</span><br>Anywhere, Anytime</h1>
       <p>Join CupLab and connect with random people worldwide. Share a virtual cup of coffee, or hop into the Game Lobby to play interactive games face-to-face!</p>
-      
+
       <div class="hero-actions">
         <div class="btn-wrapper">
-          <a href="chat.html?cat=casual" class="hero-btn">Start Free Chat Now</a>
+          <a href="chat.html" class="hero-btn">Start Free Chat Now</a>
           <span class="live-badge" id="heroLiveBadge">🟢 0 Online</span>
         </div>
         <div class="btn-wrapper">
@@ -385,17 +327,17 @@ footer a {
         <h2>Choose Your Mode</h2>
         <p>Get matched instantly based on what you want to do</p>
       </div>
-      
+
       <div class="cat-grid">
-        <a href="chat.html?cat=casual" class="cat-card casual">
+        <a href="chat.html" class="cat-card casual">
           <div class="cat-icon">💬</div>
           <h3>Random Chat</h3>
           <p>Text chat about anything and everything anonymously.</p>
         </a>
 
         <a href="chess.html" class="cat-card chess">
-          <div class="btn-wrapper" style="position: absolute; top: -10px; right: 10px;">
-             <span class="live-badge badge-chess" id="cardChessBadge">🎮 0 Playing</span>
+          <div class="btn-wrapper" style="position:absolute;top:-12px;right:10px;">
+            <span class="live-badge badge-chess" id="cardChessBadge">🎮 0 Playing</span>
           </div>
           <div class="cat-icon">🎮</div>
           <h3>Game Lobby</h3>
@@ -411,20 +353,18 @@ footer a {
         <h2>Why Choose CupLab?</h2>
         <p>The safest way to meet strangers online</p>
       </div>
-      
+
       <div class="feat-grid">
         <div class="feat-item">
           <div class="feat-icon">🔒</div>
           <h3>100% Anonymous</h3>
           <p>Your identity stays private. Chat safely without sharing personal info.</p>
         </div>
-        
         <div class="feat-item">
           <div class="feat-icon">🎮</div>
           <h3>Interactive Games</h3>
           <p>Break the ice easily by playing live games with your match.</p>
         </div>
-        
         <div class="feat-item">
           <div class="feat-icon">🎥</div>
           <h3>WebRTC Video Chat</h3>
@@ -443,39 +383,26 @@ footer a {
       <a href="privacy.html">Privacy</a> |
       <a href="safety.html">Safety</a>
     </p>
-    <p style="margin-top: 1rem;">You must be 18+ to use this service.</p>
+    <p style="margin-top:0.8rem;">You must be 18+ to use this service.</p>
   </div>
 </footer>
 
 <script>
-  // Connect to the server to get real-time user count data
-  const socket = io(window.location.origin);
+  // Index page connects just to show live counts — mark it as a "viewer"
+  const socket = io(window.location.origin, { reconnection: true });
 
-  // General live users
   socket.on('live_users', (count) => {
-    let displayCount = count > 0 ? count : 1; 
-
-    const navBadge = document.getElementById('navLiveBadge');
-    const heroBadge = document.getElementById('heroLiveBadge');
-
-    if(navBadge) navBadge.innerText = `🟢 ${displayCount}`;
-    if(heroBadge) heroBadge.innerText = `🟢 ${displayCount} Online`;
+    const n = Math.max(count, 0);
+    document.getElementById('navLiveBadge').innerText  = `🟢 ${n}`;
+    document.getElementById('heroLiveBadge').innerText = `🟢 ${n} Online`;
   });
 
-  // Specific Game Lobby users
   socket.on('live_chess_users', (count) => {
-    // If no one is playing, it's fine to show 0 for a specific game mode
-    let displayCount = count > 0 ? count : 0; 
-
-    const navChessBadge = document.getElementById('navChessBadge');
-    const heroChessBadge = document.getElementById('heroChessBadge');
-    const cardChessBadge = document.getElementById('cardChessBadge');
-
-    if(navChessBadge) navChessBadge.innerText = `🎮 ${displayCount}`;
-    if(heroChessBadge) heroChessBadge.innerText = `🎮 ${displayCount} Playing`;
-    if(cardChessBadge) cardChessBadge.innerText = `🎮 ${displayCount} Playing`;
+    const n = Math.max(count, 0);
+    document.getElementById('navChessBadge').innerText  = `🎮 ${n}`;
+    document.getElementById('heroChessBadge').innerText = `🎮 ${n} Playing`;
+    document.getElementById('cardChessBadge').innerText = `🎮 ${n} Playing`;
   });
 </script>
-
 </body>
 </html>
