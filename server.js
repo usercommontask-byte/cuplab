@@ -4,73 +4,76 @@ const { Server } = require('socket.io');
 
 const app = express();
 const server = http.createServer(app);
-const io = new Server(server);
+const io = new Server(server, {
+    cors: { origin: "*" }
+});
 
-// Serve the frontend files from a 'public' folder
 app.use(express.static('public'));
 
-// We now have TWO queues: one for random chat, one for chess
 const queues = {
     casual: [],
     chess: []
 };
 
-// Keep track of who is chatting with who
-const activeChats = new Map(); 
+const activeChats = new Map();
 
-// Track total live users and specific chess players
-let totalUsers = 0;
-let chessUsers = 0;
+// Use Set so counts are always accurate (no double-counting)
+const connectedUsers = new Set();
+const chessUserSet = new Set();
+
+function broadcastCounts() {
+    io.emit('live_users', connectedUsers.size);
+    io.emit('live_chess_users', chessUserSet.size);
+}
 
 io.on('connection', (socket) => {
-    // Increment total user count and broadcast
-    totalUsers++;
-    io.emit('live_users', totalUsers);
-    io.emit('live_chess_users', chessUsers); // Send current chess count to new user
-    
-    console.log(`User connected: ${socket.id} | Total Live: ${totalUsers}`);
+    connectedUsers.add(socket.id);
+    broadcastCounts();
+    console.log(`User connected: ${socket.id} | Total: ${connectedUsers.size}`);
 
-    // 1. MATCHMAKING LOGIC
+    // MATCHMAKING
     socket.on('find_partner', (category) => {
-        // Fallback to casual if invalid, otherwise use requested category
         const queueName = queues[category] ? category : 'casual';
         const queue = queues[queueName];
 
-        // Track what category the user is currently engaged in
-        socket.currentCategory = queueName;
-        
-        // If they chose chess, increment chess user count and broadcast
-        if (queueName === 'chess') {
-            chessUsers++;
-            io.emit('live_chess_users', chessUsers);
+        // Remove from old chess set if switching modes
+        if (socket.currentCategory === 'chess' && queueName !== 'chess') {
+            chessUserSet.delete(socket.id);
         }
 
-        // Check if someone is already waiting in this specific queue
+        socket.currentCategory = queueName;
+
+        if (queueName === 'chess') {
+            chessUserSet.add(socket.id);
+        }
+
+        broadcastCounts();
+
+        // Remove from any old queue first (in case of reconnect)
+        for (const [key, q] of Object.entries(queues)) {
+            const idx = q.indexOf(socket);
+            if (idx !== -1) q.splice(idx, 1);
+        }
+
         if (queue.length > 0) {
-            // Match found!
             const partner = queue.shift();
             const roomName = `room_${partner.id}_${socket.id}`;
 
-            // Put both users in a private room
             partner.join(roomName);
             socket.join(roomName);
 
-            // Record the active chat for both users
             activeChats.set(socket.id, { room: roomName, partnerId: partner.id, category: queueName });
             activeChats.set(partner.id, { room: roomName, partnerId: socket.id, category: queueName });
 
-            // Tell both clients they are matched. 
-            // We pass roles so the frontend knows who creates the WebRTC Video offer and who plays White in chess.
             io.to(socket.id).emit('matched', { role: 'initiator', color: 'white' });
             io.to(partner.id).emit('matched', { role: 'receiver', color: 'black' });
         } else {
-            // No one is waiting, put this user in the queue
             queue.push(socket);
             socket.waitingCategory = queueName;
         }
     });
 
-    // 2. TEXT CHAT LOGIC
+    // TEXT CHAT
     socket.on('send_message', (text) => {
         const chat = activeChats.get(socket.id);
         if (chat) {
@@ -78,48 +81,42 @@ io.on('connection', (socket) => {
         }
     });
 
-    // 3. CHAT & GAME DISCONNECT LOGIC
+    // LEAVE / DISCONNECT
     socket.on('leave_chat', () => {
-        handleDisconnectOrLeave(socket);
+        handleLeave(socket, false);
     });
 
     socket.on('disconnect', () => {
-        totalUsers--;
-        io.emit('live_users', totalUsers);
-        console.log(`User disconnected: ${socket.id} | Total Live: ${totalUsers}`);
-        
-        handleDisconnectOrLeave(socket);
+        connectedUsers.delete(socket.id);
+        chessUserSet.delete(socket.id);
+        broadcastCounts();
+        console.log(`User disconnected: ${socket.id} | Total: ${connectedUsers.size}`);
+        handleLeave(socket, true);
     });
 
-    // ==========================================
-    // NEW: WEBRTC (VIDEO/AUDIO) & CHAT SIGNALING
-    // ==========================================
-
-    // Relay WebRTC Offer
+    // WEBRTC SIGNALING
     socket.on('webrtc_offer', (offer) => {
         const chat = activeChats.get(socket.id);
         if (chat) socket.to(chat.room).emit('webrtc_offer', offer);
     });
 
-    // Relay WebRTC Answer
     socket.on('webrtc_answer', (answer) => {
         const chat = activeChats.get(socket.id);
         if (chat) socket.to(chat.room).emit('webrtc_answer', answer);
     });
 
-    // Relay ICE Candidates for direct peer-to-peer connection
     socket.on('webrtc_ice_candidate', (candidate) => {
         const chat = activeChats.get(socket.id);
         if (chat) socket.to(chat.room).emit('webrtc_ice_candidate', candidate);
     });
 
-    // Relay Chess Moves between players
+    // GAME MOVES
     socket.on('chess_move', (move) => {
         const chat = activeChats.get(socket.id);
         if (chat) socket.to(chat.room).emit('chess_move', move);
     });
 
-    // --- NEW: LOBBY & GAME SELECTION SIGNALING ---
+    // LOBBY SIGNALING
     socket.on('select_game', (gameName) => {
         const chat = activeChats.get(socket.id);
         if (chat) socket.to(chat.room).emit('game_selected', gameName);
@@ -131,44 +128,39 @@ io.on('connection', (socket) => {
     });
 });
 
-// Helper function to handle cleaning up when someone leaves or disconnects
-function handleDisconnectOrLeave(socket) {
-    // 1. Clean up chess user count if they were playing/waiting for chess
-    if (socket.currentCategory === 'chess') {
-        chessUsers--;
-        if (chessUsers < 0) chessUsers = 0; // Failsafe
-        io.emit('live_chess_users', chessUsers);
-        socket.currentCategory = null;
-    }
-
-    // 2. Remove from queue if they were still waiting
-    if (socket.waitingCategory && queues[socket.waitingCategory]) {
-        const index = queues[socket.waitingCategory].indexOf(socket);
-        if (index !== -1) {
-            queues[socket.waitingCategory].splice(index, 1);
+function handleLeave(socket, isDisconnect) {
+    // Remove from waiting queue
+    for (const [key, q] of Object.entries(queues)) {
+        const idx = q.indexOf(socket);
+        if (idx !== -1) {
+            q.splice(idx, 1);
+            break;
         }
-        socket.waitingCategory = null;
     }
+    socket.waitingCategory = null;
 
-    // 3. Notify partner and destroy the active room
+    // If not a disconnect, clean up chess tracking
+    if (!isDisconnect && socket.currentCategory === 'chess') {
+        chessUserSet.delete(socket.id);
+        broadcastCounts();
+    }
+    socket.currentCategory = null;
+
+    // Notify partner
     const chat = activeChats.get(socket.id);
     if (chat) {
         socket.to(chat.room).emit('stranger_disconnected');
-        
-        // Remove both from the socket room
         socket.leave(chat.room);
         const partnerSocket = io.sockets.sockets.get(chat.partnerId);
         if (partnerSocket) {
             partnerSocket.leave(chat.room);
-            activeChats.delete(chat.partnerId); // Clear partner's active chat state
+            activeChats.delete(chat.partnerId);
         }
-
-        activeChats.delete(socket.id); // Clear my active chat state
+        activeChats.delete(socket.id);
     }
 }
 
-// Start the server
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
-    console.log(`Server is running on http://localhost:${PORT}`);
+    console.log(`CupLab server running on http://localhost:${PORT}`);
 });
