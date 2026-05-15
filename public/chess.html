@@ -35,42 +35,103 @@ body {
   color: var(--white);
   height: 100dvh;
   min-height: 100vh;
-  overflow: hidden; 
+  overflow: hidden;
   display: flex;
   flex-direction: column;
 }
 
+/* HEADER */
 .header {
-  background: rgba(26, 26, 46, 0.95);
+  background: rgba(26,26,46,0.97);
   border-bottom: 2px solid var(--chess);
-  padding: 0.8rem 1.5rem;
+  padding: 0.75rem 1.5rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  flex-shrink: 0; 
+  flex-shrink: 0;
 }
 
 .logo {
-  font-size: 1.5rem;
+  font-size: 1.4rem;
   font-weight: 800;
   color: var(--chess);
   text-decoration: none;
 }
-.logo::before { content: '🎮 '; } 
+.logo::before { content: '🎮 '; }
 
 .home-btn {
   background: transparent;
   border: 2px solid var(--gray);
   color: var(--gray);
-  padding: 0.5rem 1.2rem;
+  padding: 0.45rem 1.1rem;
   border-radius: 20px;
   text-decoration: none;
   font-weight: 600;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   transition: all 0.3s;
 }
-
 .home-btn:hover { border-color: var(--primary); color: var(--primary); }
+
+/* =====================
+   CUSTOM MODAL (no alert)
+===================== */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.7);
+  z-index: 9999;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+.modal-overlay.show { display: flex; }
+
+.modal-box {
+  background: var(--dark2);
+  border: 2px solid var(--chess);
+  border-radius: 18px;
+  padding: 2rem 1.8rem;
+  max-width: 400px;
+  width: 100%;
+  text-align: center;
+}
+.modal-box h3 { font-size: 1.4rem; margin-bottom: 0.7rem; color: var(--chess); }
+.modal-box p { color: var(--gray); margin-bottom: 1.5rem; line-height: 1.6; font-size: 0.95rem; }
+.modal-btns { display: flex; gap: 0.8rem; justify-content: center; flex-wrap: wrap; }
+.modal-btn {
+  padding: 0.7rem 1.8rem;
+  border-radius: 22px;
+  border: none;
+  font-weight: 700;
+  font-size: 0.92rem;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+.modal-btn.primary { background: var(--chess); color: var(--white); }
+.modal-btn.primary:hover { background: var(--chess-dark); transform: translateY(-2px); }
+.modal-btn.secondary { background: transparent; border: 2px solid var(--gray); color: var(--gray); }
+.modal-btn.secondary:hover { border-color: var(--red); color: var(--red); }
+
+/* TOAST */
+.toast {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: var(--dark2);
+  border: 1px solid var(--dark3);
+  border-radius: 30px;
+  padding: 0.6rem 1.4rem;
+  font-size: 0.88rem;
+  color: var(--white);
+  opacity: 0;
+  transition: all 0.35s;
+  z-index: 9000;
+  white-space: nowrap;
+  pointer-events: none;
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
 /* MATCHING SCREEN */
 .matching {
@@ -84,33 +145,50 @@ body {
 }
 
 .spinner {
-  width: 80px;
-  height: 80px;
+  width: 75px;
+  height: 75px;
   border: 5px solid var(--dark3);
   border-top: 5px solid var(--chess);
   border-radius: 50%;
   animation: spin 1s linear infinite;
-  margin-bottom: 2rem;
+  margin-bottom: 1.8rem;
 }
-
 @keyframes spin { to { transform: rotate(360deg); } }
 
+.matching h2 { font-size: 1.8rem; margin-bottom: 0.6rem; }
+.matching p { color: var(--gray); font-size: 1rem; margin-bottom: 0.5rem; }
+
 .cancel-btn {
-  margin-top: 2rem;
+  margin-top: 1.8rem;
   background: transparent;
   border: 2px solid var(--gray);
   color: var(--gray);
-  padding: 0.8rem 2.5rem;
+  padding: 0.7rem 2rem;
   border-radius: 25px;
   cursor: pointer;
   font-weight: 700;
+  transition: all 0.3s;
 }
+.cancel-btn:hover { border-color: var(--red); color: var(--red); }
+
+/* MEDIA ERROR SCREEN */
+.media-error {
+  display: none;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 2rem;
+}
+.media-error h2 { font-size: 1.8rem; margin-bottom: 0.8rem; color: var(--red); }
+.media-error p { color: var(--gray); margin-bottom: 1.5rem; max-width: 420px; line-height: 1.6; }
 
 /* GAME SCREEN LAYOUT */
 .game-screen {
   display: none;
   flex: 1;
-  min-height: 0; 
+  min-height: 0;
   padding: 0.5rem;
   gap: 0.5rem;
   max-width: 1400px;
@@ -126,53 +204,44 @@ body {
 }
 
 .video-box {
-  background: var(--dark2);
-  border-radius: 12px;
+  background: #000;
+  border-radius: 10px;
   overflow: hidden;
   position: relative;
   border: 2px solid var(--dark3);
   aspect-ratio: 4/3;
   width: 100%;
   display: flex;
+  align-items: center;
   justify-content: center;
-  background: #000;
 }
 
-video {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
+video { width: 100%; height: 100%; object-fit: cover; display: block; }
 
 .video-label {
   position: absolute;
-  bottom: 8px;
-  left: 8px;
+  bottom: 7px;
+  left: 7px;
   background: rgba(0,0,0,0.6);
-  padding: 2px 8px;
-  border-radius: 8px;
-  font-size: 0.75rem;
+  padding: 2px 7px;
+  border-radius: 7px;
+  font-size: 0.72rem;
   font-weight: bold;
 }
 
-.controls {
-  display: flex;
-  gap: 0.5rem;
-  justify-content: center;
-}
+.controls { display: flex; gap: 0.5rem; justify-content: center; }
 
 .ctrl-btn {
-  padding: 0.7rem 1rem;
-  border-radius: 20px;
+  padding: 0.65rem 0.9rem;
+  border-radius: 18px;
   border: none;
   font-weight: 700;
   cursor: pointer;
   transition: all 0.3s;
   background: var(--dark3);
   color: white;
-  text-align: center;
+  font-size: 0.85rem;
 }
-
 .ctrl-btn.active { background: var(--chess); }
 .ctrl-btn.danger { background: var(--red); }
 .ctrl-btn:hover { filter: brightness(1.2); }
@@ -180,129 +249,111 @@ video {
 /* CHESS / LOBBY SECTION */
 .chess-section {
   flex: 1;
-  min-height: 0; 
+  min-height: 0;
   display: flex;
   flex-direction: column;
   background: var(--dark2);
   padding: 0.8rem;
-  border-radius: 15px;
+  border-radius: 12px;
   border: 2px solid var(--dark3);
-  overflow: hidden; 
+  overflow: hidden;
 }
 
-/* GAME WRAPPERS */
-#chessGameWrapper, #tttGameWrapper, #pongGameWrapper {
-  width: 100%;
-  height: 100%;
-  flex-direction: column;
-  align-items: center;
-  justify-content: space-between;
-}
-
-/* ==================================
-   LOBBY UI
-=================================== */
+/* LOBBY UI */
 #lobbyMenu {
   width: 100%;
   height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   text-align: center;
   padding: 1rem 0;
   overflow-y: auto;
 }
 
+#lobbyMenu h2 { margin-bottom: 0.5rem; font-size: 1.6rem; }
+#lobbyMenu p { color: var(--gray); margin-bottom: 1.5rem; font-size: 0.9rem; }
+
 .lobby-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+  gap: 0.9rem;
   width: 100%;
-  max-width: 500px;
-  margin: 0 auto;
+  max-width: 480px;
 }
 
 .game-card {
   background: var(--dark3);
   border: 2px solid transparent;
   border-radius: 12px;
-  padding: 1.5rem 0.5rem;
+  padding: 1.4rem 0.5rem;
   cursor: pointer;
   transition: all 0.3s;
 }
+.game-card:hover { transform: translateY(-5px); border-color: var(--chess); background: rgba(155,89,182,0.15); }
+.card-icon { font-size: 2.3rem; margin-bottom: 0.4rem; }
+.game-card h3 { font-size: 0.95rem; margin-bottom: 0.25rem; color: var(--chess); }
+.game-card p { font-size: 0.72rem; color: var(--gray); }
 
-.game-card:hover {
-  transform: translateY(-5px);
-  border-color: var(--chess);
-  background: rgba(155, 89, 182, 0.15);
-}
-
-.card-icon { font-size: 2.5rem; margin-bottom: 0.5rem; }
-.game-card h3 { font-size: 1rem; margin-bottom: 0.3rem; color: var(--chess); }
-.game-card p { font-size: 0.75rem; color: var(--gray); }
-
-/* ==================================
-   STATUS BAR
-=================================== */
+/* STATUS BAR */
 .status-bar {
   width: 100%;
   display: flex;
   justify-content: space-between;
   align-items: center;
   background: var(--dark);
-  padding: 0.6rem 1rem;
-  border-radius: 10px;
+  padding: 0.55rem 0.9rem;
+  border-radius: 9px;
   flex-shrink: 0;
+  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
 }
 
-#gameStatus, #tttStatusText, #pongStatusText {
-  font-size: 1rem;
-  font-weight: 800;
-  color: var(--chess);
-}
+#gameStatus, #tttStatusText, #pongStatusText { font-weight: 800; color: var(--chess); font-size: 0.9rem; }
 
-/* ==================================
-   RESPONSIVE BOARDS
-=================================== */
+/* CHESS BOARD */
 #board {
   width: 100%;
-  max-width: min(100%, 42vh); 
+  max-width: min(100%, 44vh);
   margin: auto;
-  border-radius: 6px;
+  border-radius: 5px;
   overflow: hidden;
-  box-shadow: 0 5px 20px rgba(0,0,0,0.5);
+  box-shadow: 0 4px 18px rgba(0,0,0,0.5);
 }
-
 .white-1e1d7 { background-color: #f0d9b5; color: #b58863; }
 .black-3c85d { background-color: #b58863; color: #f0d9b5; }
-.highlight-square { box-shadow: inset 0 0 5px 4px rgba(255, 235, 59, 0.8) !important; }
+.highlight-square { box-shadow: inset 0 0 5px 4px rgba(255,235,59,0.8) !important; }
 
-/* TIC-TAC-TOE UI */
+/* TIC-TAC-TOE */
 .ttt-board {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
+  gap: 7px;
   width: 100%;
   max-width: min(100%, 42vh);
   margin: auto;
   background: var(--dark3);
-  padding: 8px;
-  border-radius: 12px;
+  padding: 7px;
+  border-radius: 10px;
 }
-
 .ttt-cell {
   background: var(--dark);
   aspect-ratio: 1;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: clamp(2rem, 8vh, 4rem);
+  font-size: clamp(1.8rem, 7vh, 3.5rem);
   font-weight: 900;
   cursor: pointer;
-  border-radius: 8px;
+  border-radius: 7px;
+  transition: background 0.2s;
 }
-
+.ttt-cell:hover { background: var(--dark3); }
 .ttt-cell.x { color: var(--primary); }
 .ttt-cell.o { color: var(--green); }
 
-/* TENNIS / PONG UI */
+/* PONG */
 #pongCanvas {
   width: 100%;
   max-width: min(100%, 55vh);
@@ -312,68 +363,98 @@ video {
   border-radius: 8px;
   margin: auto;
   display: block;
-  touch-action: none; /* Prevent scrolling when dragging paddle */
+  touch-action: none;
 }
 
-/* ==================================
-   DESKTOP VS MOBILE MEDIA QUERIES
-=================================== */
+/* GAME WRAPPERS - hidden by default */
+#chessGameWrapper, #tttGameWrapper, #pongGameWrapper {
+  width: 100%;
+  height: 100%;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  display: none;
+}
+
+/* RESPONSIVE */
 @media (min-width: 800px) {
-  .game-screen { flex-direction: row; padding: 1.5rem; gap: 1.5rem; }
-  .video-section { flex: 0 0 320px; }
-  #board, .ttt-board { max-width: min(100%, 60vh); } 
-  #pongCanvas { max-width: min(100%, 80vh); }
+  .game-screen { flex-direction: row; padding: 1rem; gap: 1rem; }
+  .video-section { flex: 0 0 300px; }
+  #board, .ttt-board { max-width: min(100%, 58vh); }
+  #pongCanvas { max-width: min(100%, 75vh); }
 }
 
 @media (max-width: 799px) {
-  .game-screen { flex-direction: column; overflow: hidden; }
+  .game-screen { flex-direction: column; overflow-y: auto; }
   .video-section { flex-direction: row; flex-wrap: wrap; flex-shrink: 0; }
   .video-box { width: calc(50% - 0.25rem); }
   .controls { width: 100%; flex-shrink: 0; }
-  .ctrl-btn { flex: 1; padding: 0.6rem 0; font-size: 0.85rem; }
+  .ctrl-btn { flex: 1; padding: 0.55rem 0; font-size: 0.8rem; }
+  .chess-section { min-height: 300px; }
 }
 </style>
 </head>
 <body>
 
-<div class="header">
-  <a href="index.html" class="logo">CupLab Games</a>
-  <a href="index.html" class="home-btn">Leave Match</a>
+<!-- MODAL -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal-box">
+    <h3 id="modalTitle">Notice</h3>
+    <p id="modalMsg"></p>
+    <div class="modal-btns" id="modalBtns"></div>
+  </div>
 </div>
 
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<div class="header">
+  <a href="index.html" class="logo">CupLab Games</a>
+  <a href="index.html" class="home-btn">Leave</a>
+</div>
+
+<!-- MEDIA ERROR SCREEN -->
+<div class="media-error" id="mediaErrorScreen">
+  <h2>📷 Camera/Mic Required</h2>
+  <p>CupLab Games needs camera and microphone access to let you video chat while playing. Please allow access in your browser settings and refresh the page.</p>
+  <button class="cancel-btn" onclick="window.location.reload()">🔄 Retry</button>
+  <br><br>
+  <a href="index.html" class="home-btn" style="display:inline-block;margin-top:0.5rem;">Go Home Instead</a>
+</div>
+
+<!-- MATCHING SCREEN -->
 <div class="matching" id="matchingScreen">
   <div class="spinner"></div>
   <h2>Finding an Opponent...</h2>
-  <p>Looking for someone to play Games and Chat with you.</p>
-  <button class="cancel-btn" onclick="window.location.href='index.html'">Cancel</button>
+  <p>Looking for someone to play and chat with.</p>
+  <p id="matchWaitTime" style="font-size:0.85rem;margin-top:0.3rem;"></p>
+  <button class="cancel-btn" onclick="window.location.href='index.html'">Cancel & Go Home</button>
 </div>
 
+<!-- GAME SCREEN -->
 <div class="game-screen" id="gameScreen">
-  
+
   <div class="video-section">
     <div class="video-box">
       <video id="remoteVideo" autoplay playsinline></video>
       <div class="video-label">Stranger</div>
     </div>
-    
     <div class="video-box">
       <video id="localVideo" autoplay playsinline muted></video>
       <div class="video-label">You</div>
     </div>
-
     <div class="controls">
-      <button class="ctrl-btn active" id="micBtn" onclick="toggleAudio()">🎙️ Mic On</button>
-      <button class="ctrl-btn active" id="camBtn" onclick="toggleVideo()">📹 Cam On</button>
+      <button class="ctrl-btn active" id="micBtn" onclick="toggleAudio()">🎙️ Mic</button>
+      <button class="ctrl-btn active" id="camBtn" onclick="toggleVideo()">📹 Cam</button>
       <button class="ctrl-btn danger" onclick="nextOpponent()">⏭️ Next</button>
     </div>
   </div>
 
   <div class="chess-section">
-    
+
     <div id="lobbyMenu">
-      <h2 style="margin-bottom: 0.5rem; font-size: 1.8rem;">Choose a Game</h2>
-      <p style="color: var(--gray); margin-bottom: 1.5rem; font-size: 0.9rem;">Pick a game to start playing.</p>
-      
+      <h2>Choose a Game</h2>
+      <p>Pick a game to start playing with your match.</p>
       <div class="lobby-grid">
         <div class="game-card" onclick="startGame('chess')">
           <div class="card-icon">♟️</div>
@@ -393,122 +474,177 @@ video {
       </div>
     </div>
 
-    <div id="chessGameWrapper" style="display: none;">
+    <div id="chessGameWrapper">
       <div class="status-bar">
         <div id="gameStatus">White to move</div>
-        <div id="playerRole">Role: <strong>...</strong></div>
+        <div id="playerRole">...</div>
       </div>
       <div id="board"></div>
-      <button class="ctrl-btn danger" onclick="exitToLobby()" style="width: 100%; flex-shrink: 0; margin-top: 0.5rem;">🚪 Return to Lobby</button>
+      <button class="ctrl-btn danger" onclick="exitToLobby()" style="width:100%;margin-top:0.5rem;flex-shrink:0;">🚪 Return to Lobby</button>
     </div>
 
-    <div id="tttGameWrapper" style="display: none;">
+    <div id="tttGameWrapper">
       <div class="status-bar">
         <div id="tttStatusText">X's Turn</div>
-        <div id="tttRole">Role: <strong>...</strong></div>
+        <div id="tttRole">...</div>
       </div>
       <div class="ttt-board" id="tttBoard"></div>
-      <div style="display: flex; gap: 0.5rem; width: 100%; flex-shrink: 0; margin-top: 0.5rem;">
-        <button class="ctrl-btn" onclick="resetTtt()" style="flex: 1; background: var(--dark3); color: white;">🔄 Play Again</button>
-        <button class="ctrl-btn danger" onclick="exitToLobby()" style="flex: 1;">🚪 Lobby</button>
+      <div style="display:flex;gap:0.5rem;width:100%;margin-top:0.5rem;flex-shrink:0;">
+        <button class="ctrl-btn" onclick="resetTtt()" style="flex:1;">🔄 Again</button>
+        <button class="ctrl-btn danger" onclick="exitToLobby()" style="flex:1;">🚪 Lobby</button>
       </div>
     </div>
 
-    <div id="pongGameWrapper" style="display: none;">
+    <div id="pongGameWrapper">
       <div class="status-bar">
-        <div id="pongStatusText" style="color: var(--tennis)">Score: 0 - 0</div>
-        <div id="pongRole">Slide finger to move</div>
+        <div id="pongStatusText" style="color:var(--tennis)">Score: 0 - 0</div>
+        <div id="pongRole">Slide to move paddle</div>
       </div>
-      
       <canvas id="pongCanvas" width="600" height="400"></canvas>
-      
-      <button class="ctrl-btn danger" onclick="exitToLobby()" style="width: 100%; flex-shrink: 0; margin-top: 0.5rem;">🚪 Return to Lobby</button>
+      <button class="ctrl-btn danger" onclick="exitToLobby()" style="width:100%;margin-top:0.5rem;flex-shrink:0;">🚪 Return to Lobby</button>
     </div>
 
   </div>
-
 </div>
 
 <script>
-// --- GLOBAL VARIABLES ---
+// ============ GLOBALS ============
 const SERVER_URL = window.location.origin;
 let socket = null;
-let myColor = 'white'; 
+let myColor = 'white';
+let localStream = null;
+let peerConnection = null;
+const servers = { iceServers: [{ urls: ['stun:stun1.l.google.com:19302', 'stun:stun2.l.google.com:19302'] }] };
 
-// Chess Variables
+// Chess
 let board = null;
 let game = new Chess();
-let selectedSquare = null; 
+let selectedSquare = null;
 
-// Tic-Tac-Toe Variables
-let tttBoardState = ['', '', '', '', '', '', '', '', ''];
+// TTT
+let tttBoardState = ['','','','','','','','',''];
 let myTttSymbol = 'X';
 let currentTttTurn = 'X';
 let tttGameOver = false;
 
-// Tennis (Pong) Variables
+// Pong
 let pongAnimReq = null;
-let isPongHost = false; // 'white' plays host (left paddle & ball physics)
-let p1y = 150, p2y = 150; // Paddle Y positions
-let bx = 300, by = 200, bvx = 5, bvy = 3; // Ball position and velocity
+let isPongHost = false;
+let p1y = 150, p2y = 150;
+let bx = 300, by = 200, bvx = 5, bvy = 3;
 let score1 = 0, score2 = 0;
 const PADDLE_H = 80, PADDLE_W = 10, BALL_R = 8;
 const PONG_W = 600, PONG_H = 400;
 
-// WebRTC Variables
-let localStream;
-let peerConnection;
-const servers = { iceServers: [{ urls: ['stun:stun1.l.google.com:19302', 'stun:stun2.l.google.com:19302'] }] };
+// Wait time counter
+let waitSeconds = 0;
+let waitTimer = null;
 
-// --- INITIALIZATION ---
+// ============ MODAL / TOAST ============
+function showModal(title, msg, buttons) {
+  document.getElementById('modalTitle').textContent = title;
+  document.getElementById('modalMsg').textContent = msg;
+  const btnsEl = document.getElementById('modalBtns');
+  btnsEl.innerHTML = '';
+  buttons.forEach(b => {
+    const el = document.createElement('button');
+    el.className = 'modal-btn ' + (b.cls || 'primary');
+    el.textContent = b.label;
+    el.onclick = () => {
+      document.getElementById('modalOverlay').classList.remove('show');
+      if (b.cb) b.cb();
+    };
+    btnsEl.appendChild(el);
+  });
+  document.getElementById('modalOverlay').classList.add('show');
+}
+
+let toastTimer = null;
+function showToast(msg, duration = 2500) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), duration);
+}
+
+// ============ INIT ============
 window.onload = async function() {
-  await setupLocalMedia();
+  const ok = await setupLocalMedia();
+  if (!ok) return;
   initSocket();
   setupPongControls();
+  startWaitTimer();
 };
 
-// --- CAMERA / MIC SETUP ---
 async function setupLocalMedia() {
   try {
     localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
     document.getElementById('localVideo').srcObject = localStream;
-  } catch (error) {
-    alert("Camera/Microphone access is required to Play & Talk. Please enable permissions and refresh.");
-    console.error("Media error:", error);
+    return true;
+  } catch (err) {
+    console.error('Media error:', err);
+    document.getElementById('matchingScreen').style.display = 'none';
+    document.getElementById('mediaErrorScreen').style.display = 'flex';
+    return false;
   }
 }
 
-// --- SOCKET & MATCHMAKING ---
+function startWaitTimer() {
+  waitSeconds = 0;
+  clearInterval(waitTimer);
+  waitTimer = setInterval(() => {
+    waitSeconds++;
+    const el = document.getElementById('matchWaitTime');
+    if (el) el.textContent = `Waiting for ${waitSeconds}s...`;
+  }, 1000);
+}
+
+// ============ SOCKET ============
 function initSocket() {
-  socket = io(SERVER_URL);
+  socket = io(SERVER_URL, { reconnection: true, reconnectionAttempts: 10 });
 
   socket.on('connect', () => {
     socket.emit('find_partner', 'chess');
   });
 
   socket.on('matched', async (data) => {
+    clearInterval(waitTimer);
     myColor = data.color;
     document.getElementById('matchingScreen').style.display = 'none';
     document.getElementById('gameScreen').style.display = 'flex';
     enterLobbyUI();
     setupWebRTC(data.role);
+    showToast('✅ Matched! Choose a game to start.');
   });
 
   socket.on('stranger_disconnected', () => {
-    alert("Your partner left.");
-    nextOpponent();
+    if (peerConnection) { peerConnection.close(); peerConnection = null; }
+    document.getElementById('remoteVideo').srcObject = null;
+
+    showModal(
+      'Opponent Left',
+      'Your game partner disconnected. Find a new opponent?',
+      [
+        { label: 'Find Next', cls: 'primary', cb: () => {
+          document.getElementById('gameScreen').style.display = 'none';
+          document.getElementById('matchingScreen').style.display = 'flex';
+          enterLobbyUI();
+          startWaitTimer();
+          setTimeout(() => socket.emit('find_partner', 'chess'), 500);
+        }},
+        { label: 'Go Home', cls: 'secondary', cb: () => {
+          window.location.href = 'index.html';
+        }}
+      ]
+    );
   });
 
-  socket.on('game_selected', (gameName) => {
-    enterGameUI(gameName);
-  });
-
-  socket.on('return_to_lobby', () => {
-    enterLobbyUI();
-  });
+  socket.on('game_selected', (gameName) => { enterGameUI(gameName); });
+  socket.on('return_to_lobby', () => { enterLobbyUI(); });
 
   socket.on('webrtc_offer', async (offer) => {
-    if(!peerConnection) return;
+    if (!peerConnection) return;
     await peerConnection.setRemoteDescription(new RTCSessionDescription(offer));
     const answer = await peerConnection.createAnswer();
     await peerConnection.setLocalDescription(answer);
@@ -516,45 +652,51 @@ function initSocket() {
   });
 
   socket.on('webrtc_answer', async (answer) => {
-    if(!peerConnection) return;
+    if (!peerConnection) return;
     await peerConnection.setRemoteDescription(new RTCSessionDescription(answer));
   });
 
   socket.on('webrtc_ice_candidate', async (candidate) => {
-    if(!peerConnection) return;
-    try {
-      await peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
-    } catch (e) { console.error('Error adding received ice candidate', e); }
+    if (!peerConnection) return;
+    try { await peerConnection.addIceCandidate(new RTCIceCandidate(candidate)); }
+    catch (e) { console.error('ICE error', e); }
   });
 
-  // --- GAME MOVES MULTIPLEXER ---
   socket.on('chess_move', (data) => {
-    if (data && data.type === 'ttt') {
-        processTttMove(data.index, data.symbol);
-    } else if (data && data.type === 'ttt_reset') {
-        initTttBoard();
-    } else if (data && data.type === 'pong_paddle') {
-        // Update opponent's paddle
-        if (isPongHost) p2y = data.y;
-        else p1y = data.y;
-    } else if (data && data.type === 'pong_state') {
-        // Guest receives ball physics and score from Host
-        if (!isPongHost) {
-            bx = data.bx; by = data.by;
-            score1 = data.s1; score2 = data.s2;
-            updatePongScoreUI();
-        }
+    if (!data) return;
+    if (data.type === 'ttt') {
+      processTttMove(data.index, data.symbol);
+    } else if (data.type === 'ttt_reset') {
+      initTttBoard();
+    } else if (data.type === 'pong_paddle') {
+      if (isPongHost) p2y = data.y; else p1y = data.y;
+    } else if (data.type === 'pong_state') {
+      if (!isPongHost) { bx = data.bx; by = data.by; score1 = data.s1; score2 = data.s2; updatePongScoreUI(); }
     } else {
-        // Standard Chess move
-        game.move(data);
-        board.position(game.fen());
-        updateStatus();
-        removeHighlights(); 
+      game.move(data);
+      board.position(game.fen());
+      updateChessStatus();
+      removeHighlights();
     }
   });
 }
 
-// --- GAME LOBBY LOGIC ---
+// ============ WEBRTC ============
+function setupWebRTC(role) {
+  peerConnection = new RTCPeerConnection(servers);
+  localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
+  peerConnection.ontrack = (e) => { document.getElementById('remoteVideo').srcObject = e.streams[0]; };
+  peerConnection.onicecandidate = (e) => { if (e.candidate) socket.emit('webrtc_ice_candidate', e.candidate); };
+
+  if (role === 'initiator') {
+    peerConnection.createOffer().then(offer => {
+      peerConnection.setLocalDescription(offer);
+      socket.emit('webrtc_offer', offer);
+    });
+  }
+}
+
+// ============ LOBBY ============
 function startGame(gameName) {
   socket.emit('select_game', gameName);
   enterGameUI(gameName);
@@ -569,26 +711,24 @@ function enterLobbyUI() {
   document.getElementById('chessGameWrapper').style.display = 'none';
   document.getElementById('tttGameWrapper').style.display = 'none';
   document.getElementById('pongGameWrapper').style.display = 'none';
-  document.getElementById('lobbyMenu').style.display = 'block';
-  
+  document.getElementById('lobbyMenu').style.display = 'flex';
   if (board) { board.destroy(); board = null; }
   selectedSquare = null;
-  if (pongAnimReq) cancelAnimationFrame(pongAnimReq);
+  if (pongAnimReq) { cancelAnimationFrame(pongAnimReq); pongAnimReq = null; }
 }
 
 function enterGameUI(gameName) {
   document.getElementById('lobbyMenu').style.display = 'none';
-  
   if (gameName === 'chess') {
     document.getElementById('chessGameWrapper').style.display = 'flex';
-    document.getElementById('playerRole').innerHTML = `<strong style="color:${myColor === 'white' ? '#fff' : '#333'}">${myColor.toUpperCase()}</strong>`;
+    document.getElementById('playerRole').innerHTML = `You: <strong style="color:${myColor==='white'?'#fff':'#ccc'}">${myColor.toUpperCase()}</strong>`;
     initChessBoard();
-    updateStatus();
-    setTimeout(() => { if(board) board.resize(); }, 100); 
+    updateChessStatus();
+    setTimeout(() => { if (board) board.resize(); }, 120);
   } else if (gameName === 'ttt') {
     document.getElementById('tttGameWrapper').style.display = 'flex';
-    myTttSymbol = (myColor === 'white') ? 'X' : 'O'; 
-    document.getElementById('tttRole').innerHTML = `<strong style="color:${myTttSymbol === 'X' ? 'var(--primary)' : 'var(--green)'}">${myTttSymbol}</strong>`;
+    myTttSymbol = (myColor === 'white') ? 'X' : 'O';
+    document.getElementById('tttRole').innerHTML = `You: <strong style="color:${myTttSymbol==='X'?'var(--primary)':'var(--green)'}">${myTttSymbol}</strong>`;
     initTttBoard();
   } else if (gameName === 'pong') {
     document.getElementById('pongGameWrapper').style.display = 'flex';
@@ -596,155 +736,87 @@ function enterGameUI(gameName) {
   }
 }
 
-// --- WEBRTC PEER CONNECTION ---
-function setupWebRTC(role) {
-  peerConnection = new RTCPeerConnection(servers);
-  localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
-  peerConnection.ontrack = (event) => { document.getElementById('remoteVideo').srcObject = event.streams[0]; };
-  peerConnection.onicecandidate = (event) => { if (event.candidate) socket.emit('webrtc_ice_candidate', event.candidate); };
-
-  if (role === 'initiator') {
-    peerConnection.createOffer()
-      .then(offer => {
-        peerConnection.setLocalDescription(offer);
-        socket.emit('webrtc_offer', offer);
-      });
-  }
+// ============ VIDEO CONTROLS ============
+function toggleAudio() {
+  const track = localStream.getAudioTracks()[0];
+  const btn = document.getElementById('micBtn');
+  if (track.enabled) { track.enabled = false; btn.innerText = '🔇 Muted'; btn.classList.remove('active'); }
+  else { track.enabled = true; btn.innerText = '🎙️ Mic'; btn.classList.add('active'); }
 }
 
-// ==========================================
-// TENNIS (PONG) LOGIC
-// ==========================================
-function initPong() {
-  isPongHost = (myColor === 'white'); // White handles ball logic
-  p1y = 150; p2y = 150;
-  bx = 300; by = 200;
-  bvx = 5; bvy = 3;
-  score1 = 0; score2 = 0;
-  updatePongScoreUI();
-  
-  if (pongAnimReq) cancelAnimationFrame(pongAnimReq);
-  pongLoop();
+function toggleVideo() {
+  const track = localStream.getVideoTracks()[0];
+  const btn = document.getElementById('camBtn');
+  if (track.enabled) { track.enabled = false; btn.innerText = '📷 Off'; btn.classList.remove('active'); }
+  else { track.enabled = true; btn.innerText = '📹 Cam'; btn.classList.add('active'); }
 }
 
-function updatePongScoreUI() {
-  document.getElementById('pongStatusText').innerText = `Score: ${score1} - ${score2}`;
+function nextOpponent() {
+  socket.emit('leave_chat');
+  if (peerConnection) { peerConnection.close(); peerConnection = null; }
+  document.getElementById('remoteVideo').srcObject = null;
+  document.getElementById('gameScreen').style.display = 'none';
+  document.getElementById('matchingScreen').style.display = 'flex';
+  enterLobbyUI();
+  startWaitTimer();
+  setTimeout(() => socket.emit('find_partner', 'chess'), 600);
 }
 
-// Sync touch and mouse movement to paddle
-function setupPongControls() {
-  const canvas = document.getElementById('pongCanvas');
-  
-  function updateMyPaddle(clientY) {
-    const rect = canvas.getBoundingClientRect();
-    const scaleY = canvas.height / rect.height;
-    let y = (clientY - rect.top) * scaleY - PADDLE_H / 2;
-    
-    // Clamp paddle to screen
-    if (y < 0) y = 0;
-    if (y > PONG_H - PADDLE_H) y = PONG_H - PADDLE_H;
-
-    if (isPongHost) p1y = y;
-    else p2y = y;
-
-    // Send to opponent
-    socket.emit('chess_move', { type: 'pong_paddle', y: y });
-  }
-
-  canvas.addEventListener('mousemove', (e) => updateMyPaddle(e.clientY));
-  canvas.addEventListener('touchmove', (e) => {
-    e.preventDefault(); // Stop scrolling
-    updateMyPaddle(e.touches[0].clientY);
-  }, { passive: false });
+// ============ CHESS ============
+function initChessBoard() {
+  game.reset();
+  selectedSquare = null;
+  board = Chessboard('board', {
+    draggable: false,
+    position: 'start',
+    orientation: myColor,
+    pieceTheme: 'https://chessboardjs.com/img/chesspieces/wikipedia/{piece}.png'
+  });
 }
 
-function pongLoop() {
-  updatePongPhysics();
-  drawPong();
-  pongAnimReq = requestAnimationFrame(pongLoop);
-}
+$(document).on('click', '#board .square-55d63', function() {
+  if (game.game_over()) return;
+  if ($('#chessGameWrapper').css('display') === 'none') return;
+  let square = $(this).attr('data-square');
+  let turnColor = game.turn() === 'w' ? 'white' : 'black';
+  if (turnColor !== myColor) return;
 
-function updatePongPhysics() {
-  if (!isPongHost) return; // Only host computes ball physics
-
-  bx += bvx;
-  by += bvy;
-
-  // Top and Bottom walls
-  if (by < 0 || by + BALL_R > PONG_H) {
-    bvy = -bvy;
-  }
-
-  // Left Paddle (Host)
-  if (bx < PADDLE_W) {
-    if (by > p1y && by < p1y + PADDLE_H) {
-      bvx = -bvx;
-      let deltaY = by - (p1y + PADDLE_H/2);
-      bvy = deltaY * 0.15;
-    } else if (bx < 0) {
-      score2++;
-      resetPongBall();
+  let piece = game.get(square);
+  if (selectedSquare === null) {
+    if (piece && piece.color === game.turn()) { selectedSquare = square; highlightSquare(square); }
+  } else {
+    let move = game.move({ from: selectedSquare, to: square, promotion: 'q' });
+    if (move === null) {
+      if (piece && piece.color === game.turn()) { selectedSquare = square; highlightSquare(square); }
+      else { selectedSquare = null; removeHighlights(); }
+    } else {
+      selectedSquare = null;
+      removeHighlights();
+      socket.emit('chess_move', move);
+      board.position(game.fen());
+      updateChessStatus();
     }
   }
+});
 
-  // Right Paddle (Guest)
-  if (bx > PONG_W - PADDLE_W - BALL_R) {
-    if (by > p2y && by < p2y + PADDLE_H) {
-      bvx = -bvx;
-      let deltaY = by - (p2y + PADDLE_H/2);
-      bvy = deltaY * 0.15;
-    } else if (bx > PONG_W) {
-      score1++;
-      resetPongBall();
-    }
-  }
+function highlightSquare(sq) {
+  $('#board .square-55d63').removeClass('highlight-square');
+  $('#board .square-' + sq).addClass('highlight-square');
+}
+function removeHighlights() { $('#board .square-55d63').removeClass('highlight-square'); }
 
-  // Send state to Guest
-  socket.emit('chess_move', { type: 'pong_state', bx: bx, by: by, s1: score1, s2: score2 });
+function updateChessStatus() {
+  let s = '';
+  let mc = game.turn() === 'w' ? 'White' : 'Black';
+  if (game.in_checkmate()) s = `Checkmate! ${mc === 'White' ? 'Black' : 'White'} wins!`;
+  else if (game.in_draw()) s = 'Draw!';
+  else { s = `${mc} to move`; if (game.in_check()) s += ' (check)'; }
+  document.getElementById('gameStatus').innerText = s;
 }
 
-function resetPongBall() {
-  bx = PONG_W / 2;
-  by = PONG_H / 2;
-  bvx = -bvx; // Serve to the person who just scored
-  bvy = 3;
-  updatePongScoreUI();
-}
-
-function drawPong() {
-  const canvas = document.getElementById('pongCanvas');
-  const ctx = canvas.getContext('2d');
-
-  // Clear background
-  ctx.fillStyle = '#111';
-  ctx.fillRect(0, 0, PONG_W, PONG_H);
-
-  // Draw net
-  ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
-  for(let i = 0; i <= PONG_H; i+=20) {
-    ctx.fillRect(PONG_W/2 - 1, i, 2, 10);
-  }
-
-  // Draw paddles
-  ctx.fillStyle = (isPongHost) ? 'var(--primary)' : 'white';
-  ctx.fillRect(0, p1y, PADDLE_W, PADDLE_H);
-  
-  ctx.fillStyle = (!isPongHost) ? 'var(--primary)' : 'white';
-  ctx.fillRect(PONG_W - PADDLE_W, p2y, PADDLE_W, PADDLE_H);
-
-  // Draw ball
-  ctx.fillStyle = 'var(--tennis)';
-  ctx.beginPath();
-  ctx.arc(bx, by, BALL_R, 0, Math.PI*2);
-  ctx.fill();
-}
-
-// ==========================================
-// TIC-TAC-TOE LOGIC
-// ==========================================
-// ... (Tic-Tac-Toe logic remains exactly the same, omitted for brevity in explanation but included in code)
+// ============ TIC-TAC-TOE ============
 function initTttBoard() {
-  tttBoardState = ['', '', '', '', '', '', '', '', ''];
+  tttBoardState = ['','','','','','','','',''];
   currentTttTurn = 'X';
   tttGameOver = false;
   updateTttStatus();
@@ -752,20 +824,20 @@ function initTttBoard() {
 }
 
 function renderTttBoard() {
-  const boardDiv = document.getElementById('tttBoard');
-  boardDiv.innerHTML = '';
-  tttBoardState.forEach((cell, index) => {
-    const cellDiv = document.createElement('div');
-    cellDiv.className = 'ttt-cell ' + (cell === 'X' ? 'x' : (cell === 'O' ? 'o' : ''));
-    cellDiv.innerText = cell;
-    cellDiv.onclick = () => makeTttMove(index);
-    boardDiv.appendChild(cellDiv);
+  const b = document.getElementById('tttBoard');
+  b.innerHTML = '';
+  tttBoardState.forEach((cell, i) => {
+    const d = document.createElement('div');
+    d.className = 'ttt-cell ' + (cell === 'X' ? 'x' : cell === 'O' ? 'o' : '');
+    d.innerText = cell;
+    d.onclick = () => makeTttMove(i);
+    b.appendChild(d);
   });
 }
 
 function makeTttMove(index) {
   if (tttGameOver || tttBoardState[index] !== '' || currentTttTurn !== myTttSymbol) return;
-  socket.emit('chess_move', { type: 'ttt', index: index, symbol: myTttSymbol });
+  socket.emit('chess_move', { type: 'ttt', index, symbol: myTttSymbol });
   processTttMove(index, myTttSymbol);
 }
 
@@ -777,27 +849,23 @@ function processTttMove(index, symbol) {
 }
 
 function checkTttWin() {
-  const winPatterns = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
-  for (let pattern of winPatterns) {
-    const [a, b, c] = pattern;
+  const wins = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+  for (let [a,b,c] of wins) {
     if (tttBoardState[a] && tttBoardState[a] === tttBoardState[b] && tttBoardState[a] === tttBoardState[c]) {
-      document.getElementById('tttStatusText').innerText = `${tttBoardState[a]} Wins!`;
-      tttGameOver = true;
-      return;
+      document.getElementById('tttStatusText').innerText = `🎉 ${tttBoardState[a]} Wins!`;
+      tttGameOver = true; return;
     }
   }
   if (!tttBoardState.includes('')) {
-    document.getElementById('tttStatusText').innerText = "It's a Draw!";
-    tttGameOver = true;
-    return;
+    document.getElementById('tttStatusText').innerText = "🤝 Draw!";
+    tttGameOver = true; return;
   }
   updateTttStatus();
 }
 
 function updateTttStatus() {
   if (tttGameOver) return;
-  if (currentTttTurn === myTttSymbol) document.getElementById('tttStatusText').innerText = "Your Turn!";
-  else document.getElementById('tttStatusText').innerText = "Waiting...";
+  document.getElementById('tttStatusText').innerText = currentTttTurn === myTttSymbol ? 'Your Turn!' : 'Waiting...';
 }
 
 function resetTtt() {
@@ -805,95 +873,80 @@ function resetTtt() {
   initTttBoard();
 }
 
-// ==========================================
-// CHESS LOGIC (TAP TO MOVE)
-// ==========================================
-function initChessBoard() {
-  game.reset();
-  selectedSquare = null;
-  const config = { draggable: false, position: 'start', orientation: myColor, pieceTheme: 'https://chessboardjs.com/img/chesspieces/wikipedia/{piece}.png' };
-  board = Chessboard('board', config);
+// ============ PONG ============
+function initPong() {
+  isPongHost = (myColor === 'white');
+  p1y = 150; p2y = 150;
+  bx = 300; by = 200; bvx = 5; bvy = 3;
+  score1 = 0; score2 = 0;
+  updatePongScoreUI();
+  if (pongAnimReq) cancelAnimationFrame(pongAnimReq);
+  pongLoop();
 }
 
-$(document).on('click', '#board .square-55d63', function() {
-  if (game.game_over() || $('#chessGameWrapper').css('display') === 'none') return;
-  let square = $(this).attr('data-square');
-  let turnColor = game.turn() === 'w' ? 'white' : 'black';
-  if (turnColor !== myColor) return;
-  
-  let piece = game.get(square);
-  if (selectedSquare === null) {
-    if (piece && piece.color === game.turn()) {
-      selectedSquare = square;
-      highlightSquare(square);
-    }
-  } else {
-    let move = game.move({ from: selectedSquare, to: square, promotion: 'q' });
-    if (move === null) {
-      if (piece && piece.color === game.turn()) {
-        selectedSquare = square;
-        highlightSquare(square);
-      } else {
-        selectedSquare = null;
-        removeHighlights();
-      }
-    } else {
-      selectedSquare = null;
-      removeHighlights();
-      socket.emit('chess_move', move);
-      board.position(game.fen());
-      updateStatus();
-    }
+function updatePongScoreUI() {
+  document.getElementById('pongStatusText').innerText = `Score: ${score1} - ${score2}`;
+}
+
+function setupPongControls() {
+  const canvas = document.getElementById('pongCanvas');
+  function move(clientY) {
+    const rect = canvas.getBoundingClientRect();
+    const scaleY = canvas.height / rect.height;
+    let y = (clientY - rect.top) * scaleY - PADDLE_H / 2;
+    y = Math.max(0, Math.min(PONG_H - PADDLE_H, y));
+    if (isPongHost) p1y = y; else p2y = y;
+    if (socket) socket.emit('chess_move', { type: 'pong_paddle', y });
   }
-});
-
-function highlightSquare(square) {
-  $('#board .square-55d63').removeClass('highlight-square');
-  $('#board .square-' + square).addClass('highlight-square');
+  canvas.addEventListener('mousemove', (e) => move(e.clientY));
+  canvas.addEventListener('touchmove', (e) => { e.preventDefault(); move(e.touches[0].clientY); }, { passive: false });
 }
-function removeHighlights() { $('#board .square-55d63').removeClass('highlight-square'); }
 
-function updateStatus () {
-  let statusHTML = '';
-  let moveColor = game.turn() === 'w' ? 'White' : 'Black';
-  if (game.in_checkmate()) statusHTML = `Game over, ${moveColor} checkmate.`;
-  else if (game.in_draw()) statusHTML = 'Game drawn';
-  else {
-    statusHTML = `${moveColor} to move`;
-    if (game.in_check()) statusHTML += ', in check';
+function pongLoop() {
+  updatePongPhysics();
+  drawPong();
+  pongAnimReq = requestAnimationFrame(pongLoop);
+}
+
+function updatePongPhysics() {
+  if (!isPongHost) return;
+  bx += bvx; by += bvy;
+  if (by < 0 || by + BALL_R > PONG_H) bvy = -bvy;
+  if (bx < PADDLE_W) {
+    if (by > p1y && by < p1y + PADDLE_H) { bvx = Math.abs(bvx); bvy = (by - (p1y + PADDLE_H/2)) * 0.15; }
+    else if (bx < 0) { score2++; resetPongBall(); }
   }
-  document.getElementById('gameStatus').innerText = statusHTML;
+  if (bx > PONG_W - PADDLE_W - BALL_R) {
+    if (by > p2y && by < p2y + PADDLE_H) { bvx = -Math.abs(bvx); bvy = (by - (p2y + PADDLE_H/2)) * 0.15; }
+    else if (bx > PONG_W) { score1++; resetPongBall(); }
+  }
+  if (socket) socket.emit('chess_move', { type: 'pong_state', bx, by, s1: score1, s2: score2 });
 }
 
-// --- UI CONTROLS ---
-function toggleAudio() {
-  const audioTrack = localStream.getAudioTracks()[0];
-  const btn = document.getElementById('micBtn');
-  if (audioTrack.enabled) { audioTrack.enabled = false; btn.innerText = '🔇 Mic Off'; btn.classList.remove('active'); } 
-  else { audioTrack.enabled = true; btn.innerText = '🎙️ Mic On'; btn.classList.add('active'); }
+function resetPongBall() {
+  bx = PONG_W/2; by = PONG_H/2;
+  bvx = -bvx; bvy = 3;
+  updatePongScoreUI();
 }
 
-function toggleVideo() {
-  const videoTrack = localStream.getVideoTracks()[0];
-  const btn = document.getElementById('camBtn');
-  if (videoTrack.enabled) { videoTrack.enabled = false; btn.innerText = '📷 Cam Off'; btn.classList.remove('active'); } 
-  else { videoTrack.enabled = true; btn.innerText = '📹 Cam On'; btn.classList.add('active'); }
-}
-
-function nextOpponent() {
-  socket.emit('leave_chat');
-  if (peerConnection) { peerConnection.close(); peerConnection = null; }
-  document.getElementById('remoteVideo').srcObject = null;
-  document.getElementById('gameScreen').style.display = 'none';
-  document.getElementById('matchingScreen').style.display = 'flex';
-  enterLobbyUI();
-  setTimeout(() => { socket.emit('find_partner', 'chess'); }, 1000);
+function drawPong() {
+  const canvas = document.getElementById('pongCanvas');
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = '#111';
+  ctx.fillRect(0, 0, PONG_W, PONG_H);
+  ctx.fillStyle = 'rgba(255,255,255,0.15)';
+  for (let i = 0; i <= PONG_H; i += 20) ctx.fillRect(PONG_W/2-1, i, 2, 10);
+  ctx.fillStyle = isPongHost ? '#ff6b6b' : '#eee';
+  ctx.fillRect(0, p1y, PADDLE_W, PADDLE_H);
+  ctx.fillStyle = !isPongHost ? '#ff6b6b' : '#eee';
+  ctx.fillRect(PONG_W - PADDLE_W, p2y, PADDLE_W, PADDLE_H);
+  ctx.fillStyle = '#2ecc71';
+  ctx.beginPath(); ctx.arc(bx, by, BALL_R, 0, Math.PI*2); ctx.fill();
 }
 
 window.addEventListener('resize', () => {
-    if(board && document.getElementById('chessGameWrapper').style.display !== 'none') board.resize();
+  if (board && document.getElementById('chessGameWrapper').style.display !== 'none') board.resize();
 });
 </script>
-
 </body>
 </html>
