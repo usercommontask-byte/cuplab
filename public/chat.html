@@ -5,20 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Chat - CupLab | Talk to Strangers Online</title>
 <meta name="robots" content="noindex, nofollow">
-
 <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
-
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
 :root {
   --primary: #ff6b6b;
   --primary-dark: #ee5a52;
-  --business: #4ecdc4;
-  --dating: #ff6b9d;
-  --friendship: #95e1d3;
-  --gaming: #c44569;
-  --language: #f9ca24;
   --casual: #f38181;
   --dark: #1a1a2e;
   --dark2: #16213e;
@@ -27,105 +20,158 @@
   --gray: #a8a8a8;
   --green: #26de81;
   --red: #e74c3c;
+  --yellow: #f39c12;
 }
 
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   background: var(--dark);
   color: var(--white);
-  /* Use dynamic viewport height for mobile browsers */
-  height: 100dvh; 
-  /* Fallback for older browsers */
-  min-height: 100vh; 
+  height: 100dvh;
+  min-height: 100vh;
   overflow: hidden;
-  /* Make the whole body a flex column */
   display: flex;
-  flex-direction: column; 
+  flex-direction: column;
 }
 
+/* HEADER */
 .header {
-  background: rgba(26, 26, 46, 0.95);
+  background: rgba(26,26,46,0.97);
   border-bottom: 2px solid var(--primary);
-  padding: 1rem 1.5rem;
+  padding: 0.85rem 1.5rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 0.75rem;
+  flex-shrink: 0;
   flex-wrap: wrap;
-  gap: 1rem;
 }
 
 .logo {
-  font-size: 1.8rem;
+  font-size: 1.6rem;
   font-weight: 800;
   color: var(--primary);
   text-decoration: none;
 }
-
 .logo::before { content: '☕ '; }
 
 .header-right {
   display: flex;
-  gap: 1rem;
+  gap: 0.75rem;
   align-items: center;
-}
-
-.category-badge {
-  background: var(--cat-color);
-  color: var(--white);
-  padding: 0.6rem 1.4rem;
-  border-radius: 20px;
-  font-weight: 700;
-  font-size: 0.9rem;
+  flex-wrap: wrap;
 }
 
 .status-indicator {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  font-size: 0.85rem;
-  padding: 0.5rem 1rem;
+  gap: 0.4rem;
+  font-size: 0.82rem;
+  padding: 0.4rem 0.9rem;
   border-radius: 15px;
-  background: rgba(255,255,255,0.05);
+  background: rgba(255,255,255,0.06);
 }
 
 .status-dot {
-  width: 10px;
-  height: 10px;
+  width: 9px;
+  height: 9px;
   border-radius: 50%;
   background: var(--gray);
+  flex-shrink: 0;
 }
-
 .status-dot.connected { background: var(--green); animation: pulse 2s infinite; }
 .status-dot.searching { background: var(--primary); animation: pulse 1s infinite; }
+.status-dot.disconnected { background: var(--red); }
 
 @keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
+  0%,100% { opacity: 1; }
+  50% { opacity: 0.4; }
 }
 
 .home-btn {
   background: transparent;
   border: 2px solid var(--gray);
   color: var(--gray);
-  padding: 0.6rem 1.4rem;
+  padding: 0.45rem 1.1rem;
   border-radius: 20px;
   text-decoration: none;
   font-weight: 600;
+  font-size: 0.85rem;
   transition: all 0.3s;
+  white-space: nowrap;
 }
+.home-btn:hover { border-color: var(--primary); color: var(--primary); }
 
-.home-btn:hover {
-  border-color: var(--primary);
-  color: var(--primary);
-}
-
+/* MAIN CONTENT AREA */
 .container {
-  /* Instead of doing math, tell flexbox to fill the remaining space */
-  flex: 1; 
+  flex: 1;
   display: flex;
   flex-direction: column;
-  overflow: hidden; 
+  overflow: hidden;
+  min-height: 0;
 }
+
+/* =====================
+   CUSTOM MODAL (no alert)
+===================== */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.65);
+  z-index: 9999;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+.modal-overlay.show { display: flex; }
+
+.modal-box {
+  background: var(--dark2);
+  border: 2px solid var(--primary);
+  border-radius: 18px;
+  padding: 2rem 1.8rem;
+  max-width: 420px;
+  width: 100%;
+  text-align: center;
+}
+.modal-box h3 { font-size: 1.4rem; margin-bottom: 0.7rem; color: var(--primary); }
+.modal-box p { color: var(--gray); margin-bottom: 1.5rem; line-height: 1.6; font-size: 0.95rem; }
+.modal-btns { display: flex; gap: 0.8rem; justify-content: center; flex-wrap: wrap; }
+.modal-btn {
+  padding: 0.7rem 1.8rem;
+  border-radius: 22px;
+  border: none;
+  font-weight: 700;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+.modal-btn.primary { background: var(--primary); color: var(--white); }
+.modal-btn.primary:hover { background: var(--primary-dark); transform: translateY(-2px); }
+.modal-btn.secondary { background: transparent; border: 2px solid var(--gray); color: var(--gray); }
+.modal-btn.secondary:hover { border-color: var(--red); color: var(--red); }
+.modal-btn.danger { background: var(--red); color: var(--white); }
+
+/* TOAST NOTIFICATION */
+.toast {
+  position: fixed;
+  bottom: 80px;
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: var(--dark2);
+  border: 1px solid var(--dark3);
+  border-radius: 30px;
+  padding: 0.6rem 1.4rem;
+  font-size: 0.88rem;
+  color: var(--white);
+  opacity: 0;
+  transition: all 0.35s;
+  z-index: 9000;
+  white-space: nowrap;
+  pointer-events: none;
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
 /* AGE VERIFICATION */
 .age-verify {
@@ -133,138 +179,38 @@ body {
   align-items: center;
   justify-content: center;
   height: 100%;
-  padding: 2rem;
+  padding: 1.5rem;
 }
 
 .verify-box {
   background: var(--dark2);
   border: 2px solid var(--primary);
   border-radius: 20px;
-  padding: 3rem 2.5rem;
-  max-width: 550px;
-  text-align: center;
-}
-
-.verify-box h2 {
-  font-size: 2.2rem;
-  margin-bottom: 1rem;
-  color: var(--primary);
-}
-
-.verify-box p {
-  color: var(--gray);
-  margin-bottom: 1.5rem;
-  line-height: 1.8;
-  font-size: 1.05rem;
-}
-
-.verify-box ul {
-  text-align: left;
-  margin-bottom: 2rem;
-  color: var(--gray);
-  line-height: 2;
-}
-
-.verify-btns {
-  display: flex;
-  gap: 1rem;
-  justify-content: center;
-  flex-wrap: wrap;
-}
-
-.btn {
-  padding: 1rem 2.5rem;
-  border-radius: 25px;
-  border: none;
-  font-weight: 800;
-  font-size: 1.05rem;
-  cursor: pointer;
-  transition: all 0.3s;
-}
-
-.btn-yes {
-  background: var(--primary);
-  color: var(--white);
-  box-shadow: 0 5px 20px rgba(255, 107, 107, 0.3);
-}
-
-.btn-yes:hover {
-  background: var(--primary-dark);
-  transform: translateY(-3px);
-  box-shadow: 0 7px 25px rgba(255, 107, 107, 0.4);
-}
-
-.btn-no {
-  background: transparent;
-  border: 2px solid var(--gray);
-  color: var(--gray);
-}
-
-.btn-no:hover {
-  border-color: var(--red);
-  color: var(--red);
-}
-
-/* CATEGORY SELECTION */
-.cat-select {
-  display: none;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
-  padding: 2rem;
-}
-
-.cat-box {
-  max-width: 1000px;
+  padding: 2.5rem 2rem;
+  max-width: 520px;
   width: 100%;
   text-align: center;
 }
 
-.cat-box h2 {
-  font-size: 2.8rem;
-  margin-bottom: 1rem;
-  font-weight: 900;
-}
+.verify-box h2 { font-size: 2rem; margin-bottom: 0.9rem; color: var(--primary); }
+.verify-box p { color: var(--gray); margin-bottom: 1.2rem; line-height: 1.8; font-size: 1rem; }
+.verify-box ul { text-align: left; margin-bottom: 1.8rem; color: var(--gray); line-height: 2; padding-left: 0.5rem; }
 
-.cat-box p {
-  color: var(--gray);
-  margin-bottom: 3rem;
-  font-size: 1.2rem;
-}
+.verify-btns { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
 
-.cat-options {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 1.5rem;
-}
-
-.cat-option {
-  background: var(--dark2);
-  border: 3px solid transparent;
-  border-radius: 18px;
-  padding: 2.5rem 1.8rem;
+.btn {
+  padding: 0.9rem 2.2rem;
+  border-radius: 25px;
+  border: none;
+  font-weight: 800;
+  font-size: 1rem;
   cursor: pointer;
   transition: all 0.3s;
 }
-
-.cat-option:hover {
-  border-color: var(--cat-color);
-  transform: translateY(-8px);
-  box-shadow: 0 15px 40px rgba(0,0,0,0.4);
-}
-
-.cat-option .icon {
-  font-size: 3rem;
-  margin-bottom: 1rem;
-}
-
-.cat-option h3 {
-  font-size: 1.3rem;
-  color: var(--cat-color);
-  font-weight: 800;
-}
-
-.cat-option.casual { --cat-color: var(--casual); }
+.btn-yes { background: var(--primary); color: var(--white); box-shadow: 0 4px 18px rgba(255,107,107,0.3); }
+.btn-yes:hover { background: var(--primary-dark); transform: translateY(-2px); }
+.btn-no { background: transparent; border: 2px solid var(--gray); color: var(--gray); }
+.btn-no:hover { border-color: var(--red); color: var(--red); }
 
 /* MATCHING */
 .matching {
@@ -272,156 +218,110 @@ body {
   align-items: center;
   justify-content: center;
   height: 100%;
+  padding: 2rem;
 }
 
-.match-box {
-  text-align: center;
-}
+.match-box { text-align: center; }
 
 .spinner {
-  width: 90px;
-  height: 90px;
+  width: 80px;
+  height: 80px;
   border: 5px solid var(--dark3);
   border-top: 5px solid var(--primary);
   border-radius: 50%;
   animation: spin 1s linear infinite;
-  margin: 0 auto 2.5rem;
+  margin: 0 auto 2rem;
 }
+@keyframes spin { to { transform: rotate(360deg); } }
 
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
-
-.match-box h2 {
-  font-size: 2.2rem;
-  margin-bottom: 1rem;
-  font-weight: 900;
-}
-
-.match-box p {
-  color: var(--gray);
-  font-size: 1.15rem;
-}
+.match-box h2 { font-size: 2rem; margin-bottom: 0.8rem; font-weight: 900; }
+.match-box p { color: var(--gray); font-size: 1.05rem; }
 
 .cancel-btn {
-  margin-top: 2.5rem;
+  margin-top: 2rem;
   background: transparent;
   border: 2px solid var(--gray);
   color: var(--gray);
-  padding: 0.8rem 2.5rem;
+  padding: 0.75rem 2rem;
   border-radius: 25px;
   cursor: pointer;
   font-weight: 700;
   transition: all 0.3s;
 }
-
-.cancel-btn:hover {
-  border-color: var(--red);
-  color: var(--red);
-}
+.cancel-btn:hover { border-color: var(--red); color: var(--red); }
 
 /* CHAT AREA */
 .chat-area {
   display: none;
   flex-direction: column;
   height: 100%;
+  min-height: 0;
 }
 
 .chat-header {
   background: var(--dark2);
-  padding: 1.2rem 1.5rem;
+  padding: 0.9rem 1.2rem;
   border-bottom: 2px solid var(--dark3);
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 0.75rem;
+  flex-shrink: 0;
   flex-wrap: wrap;
-  gap: 1rem;
 }
 
-.stranger-info {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
+.stranger-info { display: flex; align-items: center; gap: 0.8rem; }
 
 .status-dot-chat {
-  width: 14px;
-  height: 14px;
+  width: 12px;
+  height: 12px;
   background: var(--green);
   border-radius: 50%;
   animation: pulse 2s infinite;
+  flex-shrink: 0;
 }
 
-.stranger-name {
-  font-weight: 800;
-  font-size: 1.2rem;
-}
+.stranger-name { font-weight: 800; font-size: 1.1rem; }
 
-.chat-actions {
-  display: flex;
-  gap: 0.8rem;
-  flex-wrap: wrap;
-}
+.chat-actions { display: flex; gap: 0.6rem; flex-wrap: wrap; }
 
 .action-btn {
-  padding: 0.7rem 1.5rem;
-  border-radius: 20px;
+  padding: 0.5rem 1.1rem;
+  border-radius: 18px;
   border: none;
   font-weight: 700;
   cursor: pointer;
   transition: all 0.3s;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
 }
 
-.next-btn {
-  background: var(--primary);
-  color: var(--white);
-}
+.next-btn { background: var(--primary); color: var(--white); }
+.next-btn:hover { background: var(--primary-dark); }
 
-.next-btn:hover {
-  background: var(--primary-dark);
-  transform: translateY(-2px);
-}
+.report-btn { background: transparent; border: 2px solid var(--yellow); color: var(--yellow); }
+.report-btn:hover { background: var(--yellow); color: var(--dark); }
 
-.report-btn {
-  background: transparent;
-  border: 2px solid #f39c12;
-  color: #f39c12;
-}
-
-.report-btn:hover {
-  background: #f39c12;
-  color: var(--white);
-}
-
-.block-btn {
-  background: transparent;
-  border: 2px solid var(--red);
-  color: var(--red);
-}
-
-.block-btn:hover {
-  background: var(--red);
-  color: var(--white);
-}
+.block-btn { background: transparent; border: 2px solid var(--red); color: var(--red); }
+.block-btn:hover { background: var(--red); color: var(--white); }
 
 /* MESSAGES */
 .messages {
   flex: 1;
-  padding: 2rem 1.5rem;
+  padding: 1.5rem;
   overflow-y: auto;
   background: var(--dark);
+  min-height: 0;
+  scroll-behavior: smooth;
 }
 
 .msg {
-  margin-bottom: 1.5rem;
+  margin-bottom: 1.2rem;
   display: flex;
   flex-direction: column;
-  animation: fadeIn 0.3s;
+  animation: fadeIn 0.25s ease;
 }
-
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
+  from { opacity: 0; transform: translateY(8px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
@@ -429,57 +329,46 @@ body {
 .msg.you { align-items: flex-end; }
 
 .msg-bubble {
-  max-width: 70%;
-  padding: 1rem 1.5rem;
-  border-radius: 20px;
+  max-width: 72%;
+  padding: 0.8rem 1.2rem;
+  border-radius: 18px;
   word-wrap: break-word;
-  line-height: 1.6;
-  font-size: 1.05rem;
+  word-break: break-word;
+  line-height: 1.55;
+  font-size: 0.98rem;
 }
-
 .msg.stranger .msg-bubble {
   background: var(--dark2);
   border-bottom-left-radius: 5px;
 }
-
 .msg.you .msg-bubble {
   background: var(--primary);
   border-bottom-right-radius: 5px;
 }
 
-.msg-sender {
-  font-size: 0.75rem;
-  color: var(--gray);
-  margin-bottom: 0.5rem;
-  padding: 0 0.5rem;
-  font-weight: 600;
-}
-
-.msg-time {
-  font-size: 0.7rem;
-  color: var(--gray);
-  margin-top: 0.4rem;
-  padding: 0 0.5rem;
-}
+.msg-sender { font-size: 0.72rem; color: var(--gray); margin-bottom: 0.3rem; padding: 0 0.4rem; font-weight: 600; }
+.msg-time { font-size: 0.68rem; color: var(--gray); margin-top: 0.3rem; padding: 0 0.4rem; }
 
 .system-msg {
   text-align: center;
   color: var(--gray);
-  font-size: 0.9rem;
-  margin: 2rem 0;
-  padding: 1rem;
-  background: rgba(255,255,255,0.05);
-  border-radius: 12px;
-  animation: fadeIn 0.3s;
+  font-size: 0.85rem;
+  margin: 1.5rem 0;
+  padding: 0.75rem 1rem;
+  background: rgba(255,255,255,0.04);
+  border-radius: 10px;
+  animation: fadeIn 0.25s;
 }
 
 /* INPUT AREA */
 .input-area {
   background: var(--dark2);
   border-top: 2px solid var(--dark3);
-  padding: 1.5rem;
+  padding: 0.9rem 1.2rem;
   display: flex;
-  gap: 1rem;
+  gap: 0.75rem;
+  flex-shrink: 0;
+  align-items: center;
 }
 
 .msg-input {
@@ -487,82 +376,70 @@ body {
   background: var(--dark);
   border: 2px solid var(--dark3);
   color: var(--white);
-  padding: 1rem 1.5rem;
+  padding: 0.8rem 1.2rem;
   border-radius: 25px;
-  font-size: 1.05rem;
+  font-size: 16px; /* 16px prevents iOS zoom */
   outline: none;
   transition: border 0.3s;
+  min-width: 0;
 }
-
-.msg-input:focus {
-  border-color: var(--primary);
-}
+.msg-input:focus { border-color: var(--primary); }
+.msg-input::placeholder { color: var(--gray); }
 
 .send-btn {
   background: var(--primary);
   color: var(--white);
   border: none;
-  padding: 1rem 2.5rem;
+  padding: 0.8rem 1.6rem;
   border-radius: 25px;
   font-weight: 800;
   cursor: pointer;
   transition: all 0.3s;
+  flex-shrink: 0;
+  font-size: 0.95rem;
 }
+.send-btn:hover { background: var(--primary-dark); }
+.send-btn:disabled { background: var(--gray); cursor: not-allowed; }
 
-.send-btn:hover {
-  background: var(--primary-dark);
-  transform: scale(1.05);
+/* DISCONNECTED BANNER */
+.disconnected-bar {
+  display: none;
+  background: rgba(231,76,60,0.15);
+  border: 1px solid var(--red);
+  color: var(--red);
+  text-align: center;
+  padding: 0.5rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  flex-shrink: 0;
 }
+.disconnected-bar.show { display: block; }
 
-.send-btn:disabled {
-  background: var(--gray);
-  cursor: not-allowed;
-}
-
-/* MOBILE RESPONSIVE FIXES */
-@media (max-width: 768px) {
-  .header { 
-    padding: 0.8rem; 
-    justify-content: center; /* Centers items nicely if they wrap */
-  }
-  
-  .logo { font-size: 1.5rem; }
-  
-  /* Shrink text and padding for smaller screens */
-  .verify-box, .cat-box { padding: 1.5rem; margin: 1rem; }
-  .cat-box h2 { font-size: 2rem; }
-  
-  /* Make categories a 2-column grid on mobile so it requires less scrolling */
-  .cat-options { 
-    grid-template-columns: repeat(2, 1fr); 
-    gap: 1rem; 
-  }
-  .cat-option { padding: 1.5rem 1rem; }
-  .cat-option .icon { font-size: 2rem; }
-  
-  /* Fit action buttons nicely without wrapping wildly */
-  .chat-actions { 
-    width: 100%; 
-    justify-content: center; 
-    gap: 0.5rem;
-  }
-  .action-btn { padding: 0.5rem 1rem; font-size: 0.85rem; }
-  
-  .msg-bubble { max-width: 85%; padding: 0.8rem 1.2rem; }
-  
-  /* Keep input area tight at the bottom */
-  .input-area { padding: 0.8rem; gap: 0.5rem; }
-  
-  /* font-size: 16px is CRITICAL to stop iOS from auto-zooming when typing */
-  .msg-input { 
-    padding: 0.8rem 1rem; 
-    font-size: 16px; 
-  }
-  .send-btn { padding: 0.8rem 1.2rem; }
+@media (max-width: 600px) {
+  .header { padding: 0.6rem 0.8rem; }
+  .logo { font-size: 1.4rem; }
+  .chat-header { padding: 0.7rem 0.8rem; }
+  .messages { padding: 1rem 0.8rem; }
+  .msg-bubble { max-width: 85%; }
+  .input-area { padding: 0.6rem 0.8rem; gap: 0.5rem; }
+  .send-btn { padding: 0.75rem 1.1rem; }
+  .action-btn { padding: 0.45rem 0.8rem; font-size: 0.8rem; }
 }
 </style>
 </head>
 <body>
+
+<!-- MODAL (replaces alert) -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal-box">
+    <h3 id="modalTitle">Notice</h3>
+    <p id="modalMsg"></p>
+    <div class="modal-btns" id="modalBtns"></div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
 
 <div class="header">
   <a href="index.html" class="logo">CupLab</a>
@@ -571,13 +448,13 @@ body {
       <div class="status-dot" id="statusDot"></div>
       <span id="statusText">Connecting...</span>
     </div>
-    <div class="category-badge" id="catBadge" style="display:none;"></div>
     <a href="index.html" class="home-btn">Home</a>
   </div>
 </div>
 
 <div class="container">
-  
+
+  <!-- AGE VERIFICATION -->
   <div class="age-verify" id="ageVerify">
     <div class="verify-box">
       <h2>⚠️ Age Verification</h2>
@@ -590,25 +467,13 @@ body {
         <li>✓ You won't share explicit content</li>
       </ul>
       <div class="verify-btns">
-        <button class="btn btn-yes" onclick="verifyAge()">I'm 18+</button>
+        <button class="btn btn-yes" onclick="verifyAge()">I'm 18+, Continue</button>
         <button class="btn btn-no" onclick="rejectAge()">I'm Under 18</button>
       </div>
     </div>
   </div>
 
-  <div class="cat-select" id="catSelect">
-    <div class="cat-box">
-      <h2>Ready to chat?</h2>
-      <p>Click below to get matched instantly!</p>
-      <div class="cat-options">
-        <div class="cat-option casual" onclick="selectCategory('casual', '💬 Random Chat', '#f38181')">
-          <div class="icon">💬</div>
-          <h3>Random Chat</h3>
-        </div>
-      </div>
-    </div>
-  </div>
-
+  <!-- MATCHING SCREEN -->
   <div class="matching" id="matching">
     <div class="match-box">
       <div class="spinner"></div>
@@ -618,6 +483,10 @@ body {
     </div>
   </div>
 
+  <!-- DISCONNECTED BAR (inside chat) -->
+  <div class="disconnected-bar" id="disconnectedBar">⚠️ Connection lost. Reconnecting...</div>
+
+  <!-- CHAT AREA -->
   <div class="chat-area" id="chatArea">
     <div class="chat-header">
       <div class="stranger-info">
@@ -625,23 +494,24 @@ body {
         <span class="stranger-name">Stranger</span>
       </div>
       <div class="chat-actions">
-        <button class="action-btn next-btn" onclick="nextStranger()">Next</button>
-        <button class="action-btn report-btn" onclick="reportUser()">Report</button>
-        <button class="action-btn block-btn" onclick="blockUser()">Block</button>
+        <button class="action-btn next-btn" onclick="nextStranger()">⏭ Next</button>
+        <button class="action-btn report-btn" onclick="reportUser()">🚩 Report</button>
+        <button class="action-btn block-btn" onclick="blockUser()">🚫 Block</button>
       </div>
     </div>
 
     <div class="messages" id="messages">
-      <div class="system-msg">You're now chatting with a random stranger. Say hi!</div>
+      <div class="system-msg">You are now chatting with a random stranger. Say hi! 👋</div>
     </div>
 
     <div class="input-area">
-      <input 
-        type="text" 
-        class="msg-input" 
-        id="msgInput" 
-        placeholder="Type your message..."
-        onkeypress="handleKeyPress(event)"
+      <input
+        type="text"
+        class="msg-input"
+        id="msgInput"
+        placeholder="Type a message..."
+        onkeydown="handleKeyDown(event)"
+        autocomplete="off"
       >
       <button class="send-btn" onclick="sendMessage()" id="sendBtn">Send</button>
     </div>
@@ -650,35 +520,75 @@ body {
 </div>
 
 <script>
-const SERVER_URL = window.location.origin;
 let socket = null;
-let currentCategory = '';
-let currentCategoryColor = '';
 let isConnected = false;
+let currentCategory = 'casual';
 
-// Initialize Socket.IO connection
+// ============ MODAL / TOAST HELPERS ============
+function showModal(title, msg, buttons) {
+  document.getElementById('modalTitle').textContent = title;
+  document.getElementById('modalMsg').textContent = msg;
+  const btnsEl = document.getElementById('modalBtns');
+  btnsEl.innerHTML = '';
+  buttons.forEach(b => {
+    const el = document.createElement('button');
+    el.className = 'modal-btn ' + (b.cls || 'primary');
+    el.textContent = b.label;
+    el.onclick = () => {
+      document.getElementById('modalOverlay').classList.remove('show');
+      if (b.cb) b.cb();
+    };
+    btnsEl.appendChild(el);
+  });
+  document.getElementById('modalOverlay').classList.add('show');
+}
+
+let toastTimer = null;
+function showToast(msg, duration = 2500) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), duration);
+}
+
+// ============ STATUS ============
+function updateStatus(status, text) {
+  const dot = document.getElementById('statusDot');
+  dot.className = 'status-dot ' + status;
+  document.getElementById('statusText').textContent = text;
+}
+
+// ============ SOCKET ============
 function initSocket() {
-  socket = io(SERVER_URL, {
+  socket = io(window.location.origin, {
     reconnection: true,
-    reconnectionAttempts: 5,
-    reconnectionDelay: 1000
+    reconnectionAttempts: 10,
+    reconnectionDelay: 1500
   });
 
   socket.on('connect', () => {
     updateStatus('connected', 'Connected');
+    document.getElementById('disconnectedBar').classList.remove('show');
   });
 
   socket.on('disconnect', () => {
-    updateStatus('disconnected', 'Disconnected');
+    updateStatus('disconnected', 'Reconnecting...');
     isConnected = false;
+    // Only show bar if we were in a chat
+    if (document.getElementById('chatArea').style.display === 'flex') {
+      document.getElementById('disconnectedBar').classList.add('show');
+    }
   });
 
   socket.on('matched', () => {
+    isConnected = true;
     document.getElementById('matching').style.display = 'none';
     document.getElementById('chatArea').style.display = 'flex';
-    isConnected = true;
+    document.getElementById('disconnectedBar').classList.remove('show');
     document.getElementById('msgInput').focus();
     updateStatus('connected', 'Chatting');
+    addSystemMessage('Connected! Say hi 👋');
   });
 
   socket.on('receive_message', (text) => {
@@ -686,154 +596,131 @@ function initSocket() {
   });
 
   socket.on('stranger_disconnected', () => {
-    addSystemMessage('Stranger disconnected');
     isConnected = false;
+    addSystemMessage('Stranger disconnected.');
     updateStatus('searching', 'Finding new stranger...');
-    setTimeout(() => {
-      document.getElementById('messages').innerHTML = '';
-      document.getElementById('chatArea').style.display = 'none';
-      document.getElementById('matching').style.display = 'flex';
-      socket.emit('find_partner', currentCategory);
-    }, 1500);
+
+    showModal(
+      'Stranger Left',
+      'The stranger disconnected. Find a new person?',
+      [
+        { label: 'Find Next', cls: 'primary', cb: () => {
+          resetChatAndSearch();
+        }},
+        { label: 'Go Home', cls: 'secondary', cb: () => {
+          window.location.href = 'index.html';
+        }}
+      ]
+    );
   });
 }
 
-function updateStatus(status, text) {
-  const dot = document.getElementById('statusDot');
-  const statusText = document.getElementById('statusText');
-  dot.className = 'status-dot ' + status;
-  statusText.textContent = text;
+function resetChatAndSearch() {
+  document.getElementById('messages').innerHTML = '';
+  document.getElementById('chatArea').style.display = 'none';
+  document.getElementById('matching').style.display = 'flex';
+  socket.emit('find_partner', currentCategory);
 }
 
-// Check for category from URL
+// ============ AGE GATE ============
 window.onload = function() {
   initSocket();
-  
-  const params = new URLSearchParams(window.location.search);
-  const cat = params.get('cat');
-  if (cat) {
-    document.getElementById('ageVerify').style.display = 'none';
-    const catMap = {
-      'casual': ['casual', '💬 Random Chat', '#f38181']
-    };
-    // Default to casual if URL specifies anything else
-    selectCategory(...catMap['casual']);
+  // Check if age was already verified this session
+  if (sessionStorage.getItem('ageVerified')) {
+    showMatchingScreen();
   }
+  // else stay on age verify
 };
 
 function verifyAge() {
+  sessionStorage.setItem('ageVerified', '1');
+  showMatchingScreen();
+}
+
+function showMatchingScreen() {
   document.getElementById('ageVerify').style.display = 'none';
-  document.getElementById('catSelect').style.display = 'flex';
-}
-
-function rejectAge() {
-  alert('You must be 18 or older to use CupLab.');
-  window.location.href = 'index.html';
-}
-
-function selectCategory(cat, label, color) {
-  currentCategory = cat;
-  currentCategoryColor = color;
-  
-  const badge = document.getElementById('catBadge');
-  badge.textContent = label;
-  badge.style.setProperty('--cat-color', color);
-  badge.style.display = 'block';
-  
-  document.getElementById('catSelect').style.display = 'none';
   document.getElementById('matching').style.display = 'flex';
-  
   updateStatus('searching', 'Searching...');
   socket.emit('find_partner', currentCategory);
 }
 
+function rejectAge() {
+  // No alert — just redirect
+  window.location.href = 'index.html';
+}
+
 function cancelMatch() {
+  socket.emit('leave_chat');
   document.getElementById('matching').style.display = 'none';
-  document.getElementById('catSelect').style.display = 'flex';
+  document.getElementById('ageVerify').style.display = 'flex';
+  sessionStorage.removeItem('ageVerified');
   updateStatus('connected', 'Ready');
 }
 
+// ============ MESSAGING ============
 function sendMessage() {
   const input = document.getElementById('msgInput');
   const text = input.value.trim();
-  
   if (!text || !isConnected) return;
-  
   addMessage('you', text);
   socket.emit('send_message', text);
   input.value = '';
 }
 
-function handleKeyPress(e) {
-  if (e.key === 'Enter') sendMessage();
+function handleKeyDown(e) {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    sendMessage();
+  }
 }
 
 function addMessage(sender, text) {
   const messagesDiv = document.getElementById('messages');
   const msgDiv = document.createElement('div');
   msgDiv.className = `msg ${sender}`;
-  
-  const time = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-  
+  const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   msgDiv.innerHTML = `
     <div class="msg-sender">${sender === 'you' ? 'You' : 'Stranger'}</div>
     <div class="msg-bubble">${escapeHtml(text)}</div>
     <div class="msg-time">${time}</div>
   `;
-  
   messagesDiv.appendChild(msgDiv);
   messagesDiv.scrollTop = messagesDiv.scrollHeight;
 }
 
 function addSystemMessage(text) {
   const messagesDiv = document.getElementById('messages');
-  const msgDiv = document.createElement('div');
-  msgDiv.className = 'system-msg';
-  msgDiv.textContent = text;
-  messagesDiv.appendChild(msgDiv);
+  const div = document.createElement('div');
+  div.className = 'system-msg';
+  div.textContent = text;
+  messagesDiv.appendChild(div);
   messagesDiv.scrollTop = messagesDiv.scrollHeight;
 }
 
+// ============ ACTIONS ============
 function nextStranger() {
   isConnected = false;
-  addSystemMessage('Finding new stranger...');
   socket.emit('leave_chat');
-  
-  setTimeout(() => {
-    document.getElementById('messages').innerHTML = '';
-    document.getElementById('chatArea').style.display = 'none';
-    document.getElementById('matching').style.display = 'flex';
-    socket.emit('find_partner', currentCategory);
-  }, 800);
+  resetChatAndSearch();
 }
 
 function reportUser() {
-  addSystemMessage('User reported. Thanks for keeping CupLab safe!');
-  // In production, send report to server
-  setTimeout(() => {
-    alert('User reported successfully. If they receive 4+ reports, they will be moved to a restricted pool.');
-  }, 500);
+  showToast('✅ User reported. Thanks for keeping CupLab safe!');
+  // Server-side reporting logic can be added here
 }
 
 function blockUser() {
   isConnected = false;
-  addSystemMessage('User blocked. Finding new stranger...');
+  showToast('🚫 User blocked. Finding someone new...');
   socket.emit('leave_chat');
-  
-  setTimeout(() => {
-    document.getElementById('messages').innerHTML = '';
-    document.getElementById('chatArea').style.display = 'none';
-    document.getElementById('matching').style.display = 'flex';
-    socket.emit('find_partner', currentCategory);
-  }, 800);
+  setTimeout(resetChatAndSearch, 800);
 }
 
 function escapeHtml(text) {
-  const div = document.createElement('div');
-  div.textContent = text;
-  return div.innerHTML;
+  const d = document.createElement('div');
+  d.textContent = text;
+  return d.innerHTML;
 }
 </script>
-
 </body>
 </html>
